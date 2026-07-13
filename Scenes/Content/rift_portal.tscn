@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Content/rift_portal.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Assets/Content/Rift/rift_portal.png" id="2_texture"]
+[ext_resource type="Shader" path="res://Shaders/rift_portal.gdshader" id="3_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rift"]
+shader = ExtResource("3_shader")
+
+[node name="RiftPortal" type="Node2D"]
+z_index = -5
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_rift")
+texture = ExtResource("2_texture")
+scale = Vector2(0.115, 0.115)

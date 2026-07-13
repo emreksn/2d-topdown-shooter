@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="StatProfile" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Stats/stat_profile.gd" id="1_profile"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_value.gd" id="2_value"]
+
+[sub_resource type="Resource" id="Health"]
+script = ExtResource("2_value")
+stat_id = &"maximum_health"
+value = 420.0
+
+[sub_resource type="Resource" id="Movement"]
+script = ExtResource("2_value")
+stat_id = &"movement_speed"
+value = 42.0
+
+[sub_resource type="Resource" id="MeleeDamage"]
+script = ExtResource("2_value")
+stat_id = &"melee_damage"
+value = 22.0
+
+[sub_resource type="Resource" id="Toughness"]
+script = ExtResource("2_value")
+stat_id = &"toughness"
+value = 12.0
+
+[sub_resource type="Resource" id="Effectiveness"]
+script = ExtResource("2_value")
+stat_id = &"monster_effectiveness"
+value = 35.0
+
+[sub_resource type="Resource" id="Experience"]
+script = ExtResource("2_value")
+stat_id = &"experience_granted_multiplier"
+value = 1.0
+
+[sub_resource type="Resource" id="Gold"]
+script = ExtResource("2_value")
+stat_id = &"gold_granted_multiplier"
+value = 1.0
+
+[resource]
+script = ExtResource("1_profile")
+values = Array[ExtResource("2_value")]([SubResource("Health"), SubResource("Movement"), SubResource("MeleeDamage"), SubResource("Toughness"), SubResource("Effectiveness"), SubResource("Experience"), SubResource("Gold")])

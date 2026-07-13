@@ -1,0 +1,205 @@
+[gd_scene load_steps=21 format=3 uid="uid://cnp3gsysdfr1i"]
+
+[ext_resource type="Script" uid="uid://d2unj21ma42g5" path="res://Scripts/player.gd" id="1_cvnsp"]
+[ext_resource type="Texture2D" uid="uid://cgnhmqruv3l55" path="res://icon.svg" id="1_v0iea"]
+[ext_resource type="Shader" uid="uid://csogpvda1i31" path="res://Shaders/walk_squash.gdshader" id="3_walk"]
+[ext_resource type="Script" path="res://Scripts/Weapons/weapon_loadout_component.gd" id="4_loadout"]
+[ext_resource type="Script" path="res://Scripts/Components/health_component.gd" id="5_health"]
+[ext_resource type="Script" path="res://Scripts/Components/hurtbox.gd" id="6_hurtbox"]
+[ext_resource type="Script" path="res://Scripts/Feedback/damage_number_emitter.gd" id="7_emitter"]
+[ext_resource type="PackedScene" path="res://Scenes/Feedback/damage_number.tscn" id="8_number"]
+[ext_resource type="Script" path="res://Scripts/UI/health_bar.gd" id="9_health_bar"]
+[ext_resource type="Script" path="res://Scripts/Components/reload_scene_on_death.gd" id="10_death"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_component.gd" id="11_stats"]
+[ext_resource type="Resource" path="res://Data/Stats/stat_catalog.tres" id="12_catalog"]
+[ext_resource type="Resource" path="res://Data/Stats/player_stats.tres" id="13_profile"]
+[ext_resource type="Script" path="res://Scripts/Components/player_progression_component.gd" id="14_progression"]
+[ext_resource type="Script" path="res://Scripts/UI/player_progression_hud.gd" id="15_progression_hud"]
+[ext_resource type="Script" path="res://Scripts/Items/player_inventory_component.gd" id="16_inventory"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_walk"]
+shader = ExtResource("3_walk")
+shader_parameter/movement_amount = 0.0
+shader_parameter/squash_strength = 0.08
+shader_parameter/walk_speed = 12.0
+shader_parameter/bottom_anchor = 0.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0pxfk"]
+size = Vector2(44, 44)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_health_background"]
+bg_color = Color(0.12, 0.13, 0.16, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.03, 0.03, 0.04, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_health_fill"]
+bg_color = Color(0.22, 0.82, 0.35, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_experience_background"]
+bg_color = Color(0.07, 0.09, 0.14, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.03, 0.03, 0.04, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_experience_fill"]
+bg_color = Color(0.2, 0.58, 0.95, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="Player" type="CharacterBody2D" unique_id=1981439070 groups=["player"]]
+script = ExtResource("1_cvnsp")
+walkSquashStrength = 0.1
+walkSquashRate = 8.0
+walkSquashTransitionSpeed = 4.0
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=510200667]
+material = SubResource("ShaderMaterial_walk")
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("1_v0iea")
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=1287276825]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_0pxfk")
+
+[node name="StatComponent" type="Node" parent="."]
+script = ExtResource("11_stats")
+domain = &"player"
+catalog = ExtResource("12_catalog")
+base_profile = ExtResource("13_profile")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("5_health")
+stat_component = NodePath("../StatComponent")
+
+[node name="PlayerProgressionComponent" type="Node" parent="."]
+script = ExtResource("14_progression")
+
+[node name="PlayerInventoryComponent" type="Node" parent="."]
+script = ExtResource("16_inventory")
+stat_component = NodePath("../StatComponent")
+
+[node name="WeaponLoadoutComponent" type="Node" parent="."]
+script = ExtResource("4_loadout")
+weapon_mount = NodePath("../WeaponMount")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("6_hurtbox")
+health_component = NodePath("../HealthComponent")
+stat_component = NodePath("../StatComponent")
+invulnerability_duration = 0.75
+
+[node name="Collision" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("RectangleShape2D_0pxfk")
+
+[node name="DamageNumberEmitter" type="Node" parent="."]
+script = ExtResource("7_emitter")
+health_component = NodePath("../HealthComponent")
+hurtbox = NodePath("../Hurtbox")
+damage_number_scene = ExtResource("8_number")
+fallback_damage_color = Color(1, 0.32, 0.32, 1)
+
+[node name="ReloadSceneOnDeath" type="Node" parent="."]
+script = ExtResource("10_death")
+health_component = NodePath("../HealthComponent")
+
+[node name="WeaponMount" type="Node2D" parent="."]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="HealthBar" type="ProgressBar" parent="HUD"]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 284.0
+offset_bottom = 48.0
+theme_override_styles/background = SubResource("StyleBox_health_background")
+theme_override_styles/fill = SubResource("StyleBox_health_fill")
+show_percentage = false
+script = ExtResource("9_health_bar")
+health_component = NodePath("../../HealthComponent")
+
+[node name="ValueLabel" type="Label" parent="HUD/HealthBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.03, 0.04, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="ProgressionHUD" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 24.0
+offset_top = 58.0
+offset_right = 284.0
+offset_bottom = 116.0
+mouse_filter = 2
+script = ExtResource("15_progression_hud")
+progression = NodePath("../../PlayerProgressionComponent")
+
+[node name="GoldLabel" type="Label" parent="HUD/ProgressionHUD"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 260.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(1, 0.82, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.05, 0.01, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 17
+text = "GOLD  0"
+
+[node name="ExperienceBar" type="ProgressBar" parent="HUD/ProgressionHUD"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 30.0
+offset_right = 260.0
+offset_bottom = 56.0
+theme_override_styles/background = SubResource("StyleBox_experience_background")
+theme_override_styles/fill = SubResource("StyleBox_experience_fill")
+show_percentage = false
+
+[node name="ExperienceLabel" type="Label" parent="HUD/ProgressionHUD/ExperienceBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.03, 0.04, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 13
+text = "LV 1    XP 0 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2

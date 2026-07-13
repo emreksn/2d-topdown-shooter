@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ContentExtraModifierDefinition" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Content/content_extra_modifier_definition.gd" id="1_extra"]
+
+[resource]
+script = ExtResource("1_extra")
+id = &"crowded_wake"
+display_name = "Crowded Wake"
+compatible_content_kinds = Array[int]([0])
+rift_monsters_per_portal_delta = 1

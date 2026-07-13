@@ -1,0 +1,25 @@
+# Godot 4+ local/editor state
+.godot/
+
+# Godot export output and platform build folders
+/android/
+/build/
+/builds/
+/exports/
+
+# Godot local export credentials/presets may contain machine-specific paths or secrets.
+export_presets.cfg
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.log
+
+# Obsidian vault: keep notes and stable settings, ignore local workspace/cache churn.
+**/.obsidian/workspace.json
+**/.obsidian/workspace-mobile.json
+**/.obsidian/cache/
+**/.obsidian/plugins/*/data.json
+**/.trash/

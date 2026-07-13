@@ -1,0 +1,250 @@
+[gd_scene format=3 uid="uid://qwavmqdq7yus"]
+
+[ext_resource type="PackedScene" uid="uid://cnp3gsysdfr1i" path="res://Scenes/player.tscn" id="1_player"]
+[ext_resource type="Script" uid="uid://cy6u473nbbe1f" path="res://Scripts/Waves/spawn_director.gd" id="2_spawn"]
+[ext_resource type="Script" uid="uid://c0vb0aq3q82xj" path="res://Scripts/Waves/wave_director.gd" id="3_wave"]
+[ext_resource type="Resource" path="res://Data/Waves/wave_01.tres" id="4_wave_1"]
+[ext_resource type="Resource" path="res://Data/Waves/wave_02.tres" id="5_wave_2"]
+[ext_resource type="Resource" path="res://Data/Waves/wave_03.tres" id="6_wave_3"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/wave_hud.tscn" id="7_hud"]
+[ext_resource type="Script" uid="uid://dl0qdcowu5g24" path="res://Scripts/Waves/wave_definition.gd" id="8_wave_definition"]
+[ext_resource type="PackedScene" path="res://Scenes/Feedback/spawn_indicator.tscn" id="9_indicator"]
+[ext_resource type="Script" uid="uid://bxwx7370y4kng" path="res://Scripts/Stats/runtime_modifier_registry.gd" id="10_registry"]
+[ext_resource type="Script" uid="uid://cyhnbgt3i1s1p" path="res://Scripts/Content/rift_director.gd" id="11_rift_director"]
+[ext_resource type="PackedScene" path="res://Scenes/Content/rift_portal.tscn" id="12_rift_portal"]
+[ext_resource type="Script" path="res://Scripts/Shop/shop_director.gd" id="13_shop_director"]
+[ext_resource type="Script" path="res://Scripts/UI/shop_inventory_ui.gd" id="14_shop_ui"]
+[ext_resource type="Script" path="res://Scripts/LevelUps/level_up_director.gd" id="43_level_up_director"]
+[ext_resource type="Resource" path="res://Data/Items/running_shoes.tres" id="15_shoes"]
+[ext_resource type="Script" path="res://Scripts/UI/level_up_ui.gd" id="44_level_up_ui"]
+[ext_resource type="Script" path="res://Scripts/Items/item_evaluation_director.gd" id="68_item_evaluation_director"]
+[ext_resource type="Script" path="res://Scripts/UI/item_evaluation_ui.gd" id="69_item_evaluation_ui"]
+[ext_resource type="Script" path="res://Scripts/UI/pause_menu_ui.gd" id="70_pause_menu_ui"]
+[ext_resource type="Script" path="res://Scripts/Content/content_manager.gd" id="45_content_manager"]
+[ext_resource type="Script" path="res://Scripts/UI/content_choice_ui.gd" id="46_content_ui"]
+[ext_resource type="Resource" path="res://Data/Content/rift.tres" id="47_rift_content"]
+[ext_resource type="Script" path="res://Scripts/Content/content_definition.gd" id="48_content_definition"]
+[ext_resource type="Resource" path="res://Data/Content/Variants/stable.tres" id="49_stable_content"]
+[ext_resource type="Resource" path="res://Data/Content/Variants/prosperous.tres" id="50_prosperous_content"]
+[ext_resource type="Resource" path="res://Data/Content/Variants/blessed.tres" id="51_blessed_content"]
+[ext_resource type="Resource" path="res://Data/Content/Variants/bountiful.tres" id="52_bountiful_content"]
+[ext_resource type="Resource" path="res://Data/Content/Variants/infested.tres" id="53_infested_content"]
+[ext_resource type="Script" path="res://Scripts/Content/content_variant_definition.gd" id="54_content_variant_definition"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/golden_wake.tres" id="55_golden_wake"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/bright_wake.tres" id="56_bright_wake"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/lucky_wake.tres" id="57_lucky_wake"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/crowded_wake.tres" id="58_crowded_wake"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/hardened_cache.tres" id="59_hardened_cache"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/painful_lessons.tres" id="60_painful_lessons"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/frantic_pack.tres" id="61_frantic_pack"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/gilded_lessons.tres" id="62_gilded_lessons"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/heavy_hoard.tres" id="63_heavy_hoard"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/violent_abundance.tres" id="64_violent_abundance"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/crowded_treasury.tres" id="65_crowded_treasury"]
+[ext_resource type="Resource" path="res://Data/Content/ExtraModifiers/pressed_offering.tres" id="66_pressed_offering"]
+[ext_resource type="Script" path="res://Scripts/Content/content_extra_modifier_definition.gd" id="67_content_extra_modifier_definition"]
+[ext_resource type="Resource" path="res://Data/Items/loot_magnet.tres" id="16_magnet"]
+[ext_resource type="Resource" path="res://Data/Items/study_notes.tres" id="17_notes"]
+[ext_resource type="Script" path="res://Scripts/Items/item_definition.gd" id="18_item_definition"]
+[ext_resource type="Resource" path="res://Data/Items/default_item_rarity_manager.tres" id="19_rarity_manager"]
+[ext_resource type="Resource" path="res://Data/Items/head_taker_crown.tres" id="20_head_taker"]
+[ext_resource type="Resource" path="res://Data/Items/splintering_chamber.tres" id="21_splinter"]
+[ext_resource type="Resource" path="res://Data/Items/pinata_pact.tres" id="22_pinata"]
+[ext_resource type="Resource" path="res://Data/Items/last_breath_locket.tres" id="23_locket"]
+[ext_resource type="Resource" path="res://Data/Items/rift_compass.tres" id="24_compass"]
+[ext_resource type="Resource" path="res://Data/Items/leather_padding.tres" id="25_leather_padding"]
+[ext_resource type="Resource" path="res://Data/Items/iron_nail.tres" id="26_iron_nail"]
+[ext_resource type="Resource" path="res://Data/Items/ember_shard.tres" id="27_ember_shard"]
+[ext_resource type="Resource" path="res://Data/Items/copper_coil.tres" id="28_copper_coil"]
+[ext_resource type="Resource" path="res://Data/Items/frost_chip.tres" id="29_frost_chip"]
+[ext_resource type="Resource" path="res://Data/Items/practice_manual.tres" id="30_practice_manual"]
+[ext_resource type="Resource" path="res://Data/Items/quick_fingers.tres" id="31_quick_fingers"]
+[ext_resource type="Resource" path="res://Data/Items/smooth_powder.tres" id="32_smooth_powder"]
+[ext_resource type="Resource" path="res://Data/Items/scout_lens.tres" id="33_scout_lens"]
+[ext_resource type="Resource" path="res://Data/Items/long_barrel.tres" id="34_long_barrel"]
+[ext_resource type="Resource" path="res://Data/Items/small_magnet.tres" id="35_small_magnet"]
+[ext_resource type="Resource" path="res://Data/Items/battle_gloves.tres" id="36_battle_gloves"]
+[ext_resource type="Resource" path="res://Data/Items/reinforced_vest.tres" id="37_reinforced_vest"]
+[ext_resource type="Resource" path="res://Data/Items/hot_lead.tres" id="38_hot_lead"]
+[ext_resource type="Resource" path="res://Data/Items/keen_sights.tres" id="39_keen_sights"]
+[ext_resource type="Resource" path="res://Data/Items/runners_belt.tres" id="40_runners_belt"]
+[ext_resource type="Resource" path="res://Data/Items/hunters_ledger.tres" id="41_hunters_ledger"]
+[ext_resource type="Resource" path="res://Data/Items/singularity_rounds.tres" id="42_singularity_rounds"]
+[ext_resource type="Script" path="res://Scripts/Camera/arena_camera_2d.gd" id="71_arena_camera"]
+[ext_resource type="Script" path="res://Scripts/UI/starter_weapon_choice_ui.gd" id="72_starter_weapon_ui"]
+[ext_resource type="Resource" path="res://Data/Weapons/pistol.tres" id="73_pistol_weapon"]
+[ext_resource type="Resource" path="res://Data/Weapons/machine_gun.tres" id="74_machine_gun_weapon"]
+[ext_resource type="Resource" path="res://Data/Weapons/shotgun.tres" id="75_shotgun_weapon"]
+[ext_resource type="Resource" path="res://Data/Weapons/op_test_pistol.tres" id="76_op_test_pistol"]
+[ext_resource type="Script" path="res://Scripts/UI/monster_inspect_tooltip.gd" id="77_monster_tooltip"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape_arena_horizontal"]
+size = Vector2(1640, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape_arena_vertical"]
+size = Vector2(40, 1040)
+
+[node name="Game" type="Node2D" unique_id=1954412519]
+
+[node name="World" type="Node2D" parent="." unique_id=1951659639]
+
+[node name="Arena" type="Polygon2D" parent="World" unique_id=645020906]
+z_index = -10
+color = Color(0.075, 0.085, 0.11, 1)
+polygon = PackedVector2Array(-800, -500, 800, -500, 800, 500, -800, 500)
+
+[node name="ArenaBorder" type="Line2D" parent="World" unique_id=498650105]
+z_index = 10
+points = PackedVector2Array(-800, -500, 800, -500, 800, 500, -800, 500, -800, -500)
+default_color = Color(0.12, 0.78, 0.95, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="ArenaWalls" type="StaticBody2D" parent="World" unique_id=1760543427]
+
+[node name="Top" type="CollisionShape2D" parent="World/ArenaWalls" unique_id=830041093]
+position = Vector2(0, -520)
+shape = SubResource("RectangleShape_arena_horizontal")
+
+[node name="Bottom" type="CollisionShape2D" parent="World/ArenaWalls" unique_id=166591686]
+position = Vector2(0, 520)
+shape = SubResource("RectangleShape_arena_horizontal")
+
+[node name="Left" type="CollisionShape2D" parent="World/ArenaWalls" unique_id=495130391]
+position = Vector2(-820, 0)
+shape = SubResource("RectangleShape_arena_vertical")
+
+[node name="Right" type="CollisionShape2D" parent="World/ArenaWalls" unique_id=174327401]
+position = Vector2(820, 0)
+shape = SubResource("RectangleShape_arena_vertical")
+
+[node name="Actors" type="Node2D" parent="World" unique_id=1400997748]
+
+[node name="Player" parent="World/Actors" unique_id=916977577 instance=ExtResource("1_player")]
+
+[node name="Camera2D" type="Camera2D" parent="World/Actors/Player" unique_id=1060166627]
+script = ExtResource("71_arena_camera")
+zoom = Vector2(0.7, 0.7)
+limit_left = -800
+limit_top = -500
+limit_right = 800
+limit_bottom = 500
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="Enemies" type="Node2D" parent="World" unique_id=1357711601 groups=["enemies_container"]]
+
+[node name="Projectiles" type="Node2D" parent="World" unique_id=1938152393 groups=["projectiles_container"]]
+
+[node name="Effects" type="Node2D" parent="World" unique_id=1086213337 groups=["effects_container"]]
+
+[node name="Content" type="Node2D" parent="World" unique_id=439566608]
+
+[node name="RiftSpawnPoints" type="Node2D" parent="World" unique_id=12887749]
+
+[node name="NorthWest" type="Marker2D" parent="World/RiftSpawnPoints" unique_id=1549373864]
+position = Vector2(-420, -280)
+
+[node name="NorthEast" type="Marker2D" parent="World/RiftSpawnPoints" unique_id=1030967583]
+position = Vector2(420, -280)
+
+[node name="West" type="Marker2D" parent="World/RiftSpawnPoints" unique_id=1778300994]
+position = Vector2(-540, 40)
+
+[node name="East" type="Marker2D" parent="World/RiftSpawnPoints" unique_id=381758106]
+position = Vector2(540, 40)
+
+[node name="SouthWest" type="Marker2D" parent="World/RiftSpawnPoints" unique_id=1797342015]
+position = Vector2(-390, 330)
+
+[node name="SouthEast" type="Marker2D" parent="World/RiftSpawnPoints" unique_id=1493552054]
+position = Vector2(390, 330)
+
+[node name="Drops" type="Node2D" parent="World" unique_id=160573813 groups=["drops_container"]]
+
+[node name="Systems" type="Node" parent="." unique_id=495516418]
+
+[node name="RuntimeModifierRegistry" type="Node" parent="Systems" unique_id=468061407 groups=["runtime_modifier_registry"]]
+script = ExtResource("10_registry")
+
+[node name="SpawnDirector" type="Node" parent="Systems" unique_id=423616906]
+script = ExtResource("2_spawn")
+spawn_indicator_scene = ExtResource("9_indicator")
+
+[node name="ContentManager" type="Node" parent="Systems" groups=["content_manager"]]
+script = ExtResource("45_content_manager")
+available_content = Array[ExtResource("48_content_definition")]([ExtResource("47_rift_content")])
+available_variants = Array[ExtResource("54_content_variant_definition")]([ExtResource("49_stable_content"), ExtResource("50_prosperous_content"), ExtResource("51_blessed_content"), ExtResource("52_bountiful_content"), ExtResource("53_infested_content")])
+available_extra_modifiers = Array[ExtResource("67_content_extra_modifier_definition")]([ExtResource("55_golden_wake"), ExtResource("56_bright_wake"), ExtResource("57_lucky_wake"), ExtResource("58_crowded_wake"), ExtResource("59_hardened_cache"), ExtResource("60_painful_lessons"), ExtResource("61_frantic_pack"), ExtResource("62_gilded_lessons"), ExtResource("63_heavy_hoard"), ExtResource("64_violent_abundance"), ExtResource("65_crowded_treasury"), ExtResource("66_pressed_offering")])
+extra_modifier_count = 1
+offer_count = 3
+
+[node name="WaveDirector" type="Node" parent="Systems" unique_id=1785275601 groups=["wave_director"]]
+script = ExtResource("3_wave")
+spawn_director = NodePath("../SpawnDirector")
+content_manager = NodePath("../ContentManager")
+player = NodePath("../../World/Actors/Player")
+wave_definitions = Array[ExtResource("8_wave_definition")]([ExtResource("4_wave_1"), ExtResource("5_wave_2"), ExtResource("6_wave_3")])
+
+[node name="RiftDirector" type="Node" parent="Systems" unique_id=1851721324]
+script = ExtResource("11_rift_director")
+portal_scene = ExtResource("12_rift_portal")
+
+[node name="LevelUpDirector" type="Node" parent="Systems" groups=["level_up_director"]]
+script = ExtResource("43_level_up_director")
+progression = NodePath("../../World/Actors/Player/PlayerProgressionComponent")
+player_stats = NodePath("../../World/Actors/Player/StatComponent")
+
+[node name="ItemEvaluationDirector" type="Node" parent="Systems" groups=["item_evaluation_director"]]
+script = ExtResource("68_item_evaluation_director")
+inventory = NodePath("../../World/Actors/Player/PlayerInventoryComponent")
+progression = NodePath("../../World/Actors/Player/PlayerProgressionComponent")
+
+[node name="ShopDirector" type="Node" parent="Systems" groups=["shop_director"]]
+script = ExtResource("13_shop_director")
+wave_director = NodePath("../WaveDirector")
+player = NodePath("../../World/Actors/Player")
+progression = NodePath("../../World/Actors/Player/PlayerProgressionComponent")
+inventory = NodePath("../../World/Actors/Player/PlayerInventoryComponent")
+weapon_loadout = NodePath("../../World/Actors/Player/WeaponLoadoutComponent")
+player_stats = NodePath("../../World/Actors/Player/StatComponent")
+rarity_manager = ExtResource("19_rarity_manager")
+shop_items = Array[ExtResource("18_item_definition")]([ExtResource("15_shoes"), ExtResource("25_leather_padding"), ExtResource("26_iron_nail"), ExtResource("27_ember_shard"), ExtResource("28_copper_coil"), ExtResource("29_frost_chip"), ExtResource("30_practice_manual"), ExtResource("31_quick_fingers"), ExtResource("32_smooth_powder"), ExtResource("33_scout_lens"), ExtResource("34_long_barrel"), ExtResource("35_small_magnet"), ExtResource("16_magnet"), ExtResource("36_battle_gloves"), ExtResource("37_reinforced_vest"), ExtResource("38_hot_lead"), ExtResource("39_keen_sights"), ExtResource("40_runners_belt"), ExtResource("17_notes"), ExtResource("41_hunters_ledger"), ExtResource("42_singularity_rounds"), ExtResource("20_head_taker"), ExtResource("21_splinter"), ExtResource("22_pinata"), ExtResource("23_locket"), ExtResource("24_compass")])
+shop_weapons = Array[ExtResource("73_pistol_weapon")]([ExtResource("73_pistol_weapon"), ExtResource("74_machine_gun_weapon"), ExtResource("75_shotgun_weapon")])
+
+[node name="WaveHUD" parent="." unique_id=214891584 instance=ExtResource("7_hud")]
+wave_director = NodePath("../Systems/WaveDirector")
+
+[node name="LevelUpUI" type="CanvasLayer" parent="."]
+script = ExtResource("44_level_up_ui")
+level_up_director = NodePath("../Systems/LevelUpDirector")
+
+[node name="ItemEvaluationUI" type="CanvasLayer" parent="."]
+script = ExtResource("69_item_evaluation_ui")
+evaluation_director = NodePath("../Systems/ItemEvaluationDirector")
+
+[node name="ContentChoiceUI" type="CanvasLayer" parent="."]
+script = ExtResource("46_content_ui")
+content_manager = NodePath("../Systems/ContentManager")
+
+[node name="ShopInventoryUI" type="CanvasLayer" parent="."]
+script = ExtResource("14_shop_ui")
+wave_director = NodePath("../Systems/WaveDirector")
+shop_director = NodePath("../Systems/ShopDirector")
+inventory = NodePath("../World/Actors/Player/PlayerInventoryComponent")
+weapon_loadout = NodePath("../World/Actors/Player/WeaponLoadoutComponent")
+progression = NodePath("../World/Actors/Player/PlayerProgressionComponent")
+
+[node name="StarterWeaponChoiceUI" type="CanvasLayer" parent="."]
+script = ExtResource("72_starter_weapon_ui")
+weapon_loadout = NodePath("../World/Actors/Player/WeaponLoadoutComponent")
+starter_weapons = Array[ExtResource("73_pistol_weapon")]([ExtResource("73_pistol_weapon"), ExtResource("74_machine_gun_weapon"), ExtResource("75_shotgun_weapon"), ExtResource("76_op_test_pistol")])
+
+[node name="MonsterInspectTooltip" type="CanvasLayer" parent="."]
+script = ExtResource("77_monster_tooltip")
+
+[node name="PauseMenuUI" type="CanvasLayer" parent="."]
+script = ExtResource("70_pause_menu_ui")
+player = NodePath("../World/Actors/Player")

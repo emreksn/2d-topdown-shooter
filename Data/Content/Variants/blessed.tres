@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="ContentVariantDefinition" format=3 uid="uid://cs7hksf3joo3y"]
+
+[ext_resource type="Script" uid="uid://xbu8mq1tdese" path="res://Scripts/Content/content_variant_definition.gd" id="1_variant"]
+[ext_resource type="Script" uid="uid://buyyui2cjuh6k" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" uid="uid://dma8duyo44scc" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="Experience"]
+script = ExtResource("3_modifier")
+stat_id = &"experience_granted_multiplier"
+operation = 1
+value = 60.0
+target_domain = &"monster"
+required_all_tags = Array[StringName]([&"rift"])
+
+[sub_resource type="Resource" id="Gold"]
+script = ExtResource("3_modifier")
+stat_id = &"gold_granted_multiplier"
+operation = 1
+value = -20.0
+target_domain = &"monster"
+required_all_tags = Array[StringName]([&"rift"])
+
+[sub_resource type="Resource" id="ModifierSet"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Experience"), SubResource("Gold")])
+
+[resource]
+script = ExtResource("1_variant")
+id = &"blessed"
+display_name = "Blessed"
+inherent_modifier_set = SubResource("ModifierSet")

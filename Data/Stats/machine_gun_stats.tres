@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="StatProfile" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Stats/stat_profile.gd" id="1_profile"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_value.gd" id="2_value"]
+
+[sub_resource type="Resource" id="Damage"]
+script = ExtResource("2_value")
+stat_id = &"physical_damage"
+value = 13.5
+
+[sub_resource type="Resource" id="AttackRate"]
+script = ExtResource("2_value")
+stat_id = &"attack_rate"
+value = 2.0
+
+[sub_resource type="Resource" id="Targeting"]
+script = ExtResource("2_value")
+stat_id = &"targeting_range"
+value = 650.0
+
+[sub_resource type="Resource" id="ProjectileSpeed"]
+script = ExtResource("2_value")
+stat_id = &"projectile_speed"
+value = 850.0
+
+[resource]
+script = ExtResource("1_profile")
+values = Array[ExtResource("2_value")]([SubResource("Damage"), SubResource("AttackRate"), SubResource("Targeting"), SubResource("ProjectileSpeed")])

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3 uid="uid://drxmkdlrvovn1"]
+
+[ext_resource type="Script" uid="uid://d11nsmii062xg" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://buyyui2cjuh6k" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" uid="uid://dma8duyo44scc" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="Health"]
+script = ExtResource("3_modifier")
+stat_id = &"maximum_health"
+value = 18.0
+target_domain = &"player"
+
+[sub_resource type="Resource" id="Toughness"]
+script = ExtResource("3_modifier")
+stat_id = &"toughness"
+value = 8.0
+target_domain = &"player"
+
+[sub_resource type="Resource" id="Modifiers"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Health"), SubResource("Toughness")])
+
+[resource]
+script = ExtResource("1_item")
+id = &"reinforced_vest"
+display_name = "Reinforced Vest"
+description = "+18 to maximum health
++8% to toughness"
+rarity = 1
+cost = 22
+modifier_set = SubResource("Modifiers")

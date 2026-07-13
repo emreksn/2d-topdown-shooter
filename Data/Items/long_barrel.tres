@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3 uid="uid://bfyucr1coiosd"]
+
+[ext_resource type="Script" uid="uid://d11nsmii062xg" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://buyyui2cjuh6k" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" uid="uid://dma8duyo44scc" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="TargetingRange"]
+script = ExtResource("3_modifier")
+stat_id = &"targeting_range"
+operation = 1
+value = 11.0
+scope = 1
+target_domain = &"weapon"
+
+[sub_resource type="Resource" id="Modifiers"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("TargetingRange")])
+
+[resource]
+script = ExtResource("1_item")
+id = &"long_barrel"
+display_name = "Long Barrel"
+description = "11% increased targeting range"
+cost = 8
+modifier_set = SubResource("Modifiers")

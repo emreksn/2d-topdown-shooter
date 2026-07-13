@@ -1,0 +1,256 @@
+[gd_resource type="Resource" script_class="StatCatalog" format=3 uid="uid://bvhn72c6fm5g6"]
+
+[ext_resource type="Script" uid="uid://c4ocnxxqgsion" path="res://Scripts/Stats/stat_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" uid="uid://bhmb5x5a0lx7p" path="res://Scripts/Stats/stat_definition.gd" id="2_definition"]
+
+[sub_resource type="Resource" id="Stat_max_health"]
+script = ExtResource("2_definition")
+id = &"maximum_health"
+display_name = "Maximum Health"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_move_speed"]
+script = ExtResource("2_definition")
+id = &"movement_speed"
+display_name = "Movement Speed"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_attack_rate"]
+script = ExtResource("2_definition")
+id = &"attack_rate"
+display_name = "Attack Rate"
+has_minimum = true
+minimum = 0.01
+
+[sub_resource type="Resource" id="Stat_targeting_range"]
+script = ExtResource("2_definition")
+id = &"targeting_range"
+display_name = "Targeting Range"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_damage"]
+script = ExtResource("2_definition")
+id = &"damage"
+display_name = "Damage"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_physical_damage"]
+script = ExtResource("2_definition")
+id = &"physical_damage"
+display_name = "Physical Damage"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_lightning_damage"]
+script = ExtResource("2_definition")
+id = &"lightning_damage"
+display_name = "Lightning Damage"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_cold_damage"]
+script = ExtResource("2_definition")
+id = &"cold_damage"
+display_name = "Cold Damage"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_fire_damage"]
+script = ExtResource("2_definition")
+id = &"fire_damage"
+display_name = "Fire Damage"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_projectile_speed"]
+script = ExtResource("2_definition")
+id = &"projectile_speed"
+display_name = "Projectile Speed"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_melee_damage"]
+script = ExtResource("2_definition")
+id = &"melee_damage"
+display_name = "Melee Damage"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_physical_res"]
+script = ExtResource("2_definition")
+id = &"physical_resistance"
+display_name = "Physical Resistance"
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_lightning_res"]
+script = ExtResource("2_definition")
+id = &"lightning_resistance"
+display_name = "Lightning Resistance"
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_cold_res"]
+script = ExtResource("2_definition")
+id = &"cold_resistance"
+display_name = "Cold Resistance"
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_fire_res"]
+script = ExtResource("2_definition")
+id = &"fire_resistance"
+display_name = "Fire Resistance"
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_max_physical_res"]
+script = ExtResource("2_definition")
+id = &"maximum_physical_resistance"
+display_name = "Maximum Physical Resistance"
+default_value = 75.0
+has_maximum = true
+maximum = 99.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_max_lightning_res"]
+script = ExtResource("2_definition")
+id = &"maximum_lightning_resistance"
+display_name = "Maximum Lightning Resistance"
+default_value = 75.0
+has_maximum = true
+maximum = 99.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_max_cold_res"]
+script = ExtResource("2_definition")
+id = &"maximum_cold_resistance"
+display_name = "Maximum Cold Resistance"
+default_value = 75.0
+has_maximum = true
+maximum = 99.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_max_fire_res"]
+script = ExtResource("2_definition")
+id = &"maximum_fire_resistance"
+display_name = "Maximum Fire Resistance"
+default_value = 75.0
+has_maximum = true
+maximum = 99.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_toughness"]
+script = ExtResource("2_definition")
+id = &"toughness"
+display_name = "Toughness"
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_effectiveness"]
+script = ExtResource("2_definition")
+id = &"monster_effectiveness"
+display_name = "Monster Effectiveness"
+has_minimum = true
+minimum = -99.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_experience"]
+script = ExtResource("2_definition")
+id = &"experience_granted_multiplier"
+display_name = "Experience Granted Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_quantity"]
+script = ExtResource("2_definition")
+id = &"item_quantity_multiplier"
+display_name = "Item Quantity Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_item_rarity"]
+script = ExtResource("2_definition")
+id = &"item_rarity_multiplier"
+display_name = "Item Rarity Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_monster_item_rarity"]
+script = ExtResource("2_definition")
+id = &"monster_item_rarity_multiplier"
+display_name = "Monster Item Rarity Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_shop_item_rarity"]
+script = ExtResource("2_definition")
+id = &"shop_item_rarity_multiplier"
+display_name = "Shop Item Rarity Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_relic_chance"]
+script = ExtResource("2_definition")
+id = &"relic_chance_multiplier"
+display_name = "Relic Chance Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_shop_relic_chance"]
+script = ExtResource("2_definition")
+id = &"shop_relic_chance_multiplier"
+display_name = "Shop Relic Chance Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_shop_extra_offer_count"]
+script = ExtResource("2_definition")
+id = &"shop_extra_offer_count"
+display_name = "Shop Extra Offer Count"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_shop_reroll_cost"]
+script = ExtResource("2_definition")
+id = &"shop_reroll_cost_multiplier"
+display_name = "Shop Reroll Cost Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_shop_free_reroll_chance"]
+script = ExtResource("2_definition")
+id = &"shop_free_reroll_chance"
+display_name = "Shop Free Reroll Chance"
+has_minimum = true
+has_maximum = true
+maximum = 100.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_gold"]
+script = ExtResource("2_definition")
+id = &"gold_granted_multiplier"
+display_name = "Gold Granted Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_monster_rarity"]
+script = ExtResource("2_definition")
+id = &"monster_rarity_multiplier"
+display_name = "Monster Rarity Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_experience_gain"]
+script = ExtResource("2_definition")
+id = &"experience_gain_multiplier"
+display_name = "Experience Gain Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_pickup_range"]
+script = ExtResource("2_definition")
+id = &"pickup_range"
+display_name = "Pickup Range"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_instant_pickup"]
+script = ExtResource("2_definition")
+id = &"instant_pickup_chance"
+display_name = "Instant Pickup Chance"
+has_minimum = true
+has_maximum = true
+maximum = 100.0
+display_as_percentage = true
+
+[resource]
+script = ExtResource("1_catalog")
+definitions = Array[ExtResource("2_definition")]([SubResource("Stat_max_health"), SubResource("Stat_move_speed"), SubResource("Stat_attack_rate"), SubResource("Stat_targeting_range"), SubResource("Stat_damage"), SubResource("Stat_physical_damage"), SubResource("Stat_lightning_damage"), SubResource("Stat_cold_damage"), SubResource("Stat_fire_damage"), SubResource("Stat_projectile_speed"), SubResource("Stat_melee_damage"), SubResource("Stat_physical_res"), SubResource("Stat_lightning_res"), SubResource("Stat_cold_res"), SubResource("Stat_fire_res"), SubResource("Stat_max_physical_res"), SubResource("Stat_max_lightning_res"), SubResource("Stat_max_cold_res"), SubResource("Stat_max_fire_res"), SubResource("Stat_toughness"), SubResource("Stat_effectiveness"), SubResource("Stat_experience"), SubResource("Stat_quantity"), SubResource("Stat_item_rarity"), SubResource("Stat_monster_item_rarity"), SubResource("Stat_shop_item_rarity"), SubResource("Stat_relic_chance"), SubResource("Stat_shop_relic_chance"), SubResource("Stat_shop_extra_offer_count"), SubResource("Stat_shop_reroll_cost"), SubResource("Stat_shop_free_reroll_chance"), SubResource("Stat_gold"), SubResource("Stat_monster_rarity"), SubResource("Stat_experience_gain"), SubResource("Stat_pickup_range"), SubResource("Stat_instant_pickup")])

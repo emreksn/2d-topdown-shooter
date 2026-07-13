@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemRarityManager" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Items/item_rarity_manager.gd" id="1_manager"]
+
+[resource]
+script = ExtResource("1_manager")
+common_weight = 70.0
+uncommon_weight = 22.0
+rare_weight = 6.0
+legendary_weight = 1.5
+tradeoff_weight = 0.4
+unique_weight = 0.1

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WaveDefinition" load_steps=7 format=3 uid="uid://dqnmmnq4oyqjp"]
+
+[ext_resource type="Script" uid="uid://dl0qdcowu5g24" path="res://Scripts/Waves/wave_definition.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Data/Waves/Enemies/wandering_enemy_entry.tres" id="2_wanderer"]
+[ext_resource type="Resource" path="res://Data/Waves/Enemies/chasing_enemy_entry.tres" id="3_chaser"]
+[ext_resource type="Resource" path="res://Data/Waves/Enemies/elite_chasing_enemy_entry.tres" id="4_elite_chaser"]
+[ext_resource type="Script" uid="uid://buyyui2cjuh6k" path="res://Scripts/Stats/modifier_set.gd" id="4_6ykrx"]
+[ext_resource type="Script" uid="uid://b7r77r6c5a0ea" path="res://Scripts/Waves/enemy_spawn_entry.gd" id="4_entry"]
+
+[resource]
+script = ExtResource("1_script")
+duration = 35.0
+spawn_budget = 54
+enemy_pool = Array[ExtResource("4_entry")]([ExtResource("2_wanderer"), ExtResource("3_chaser"), ExtResource("4_elite_chaser")])
+elite_budget_share = 0.15
+minimum_pack_size = 3
+maximum_pack_size = 5
+pack_spread = 80.0

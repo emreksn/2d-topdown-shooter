@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3 uid="uid://dvy0h30syt2ss"]
+
+[ext_resource type="Script" uid="uid://d11nsmii062xg" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://buyyui2cjuh6k" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" uid="uid://dma8duyo44scc" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="ShopItemRarity"]
+script = ExtResource("3_modifier")
+stat_id = &"shop_item_rarity_multiplier"
+operation = 1
+value = 25.0
+target_domain = &"player"
+
+[sub_resource type="Resource" id="MonsterItemRarity"]
+script = ExtResource("3_modifier")
+stat_id = &"monster_item_rarity_multiplier"
+operation = 1
+value = 15.0
+target_domain = &"player"
+
+[sub_resource type="Resource" id="Modifiers"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("ShopItemRarity"), SubResource("MonsterItemRarity")])
+
+[resource]
+script = ExtResource("1_item")
+id = &"hunters_ledger"
+display_name = "Hunter's Ledger"
+description = "25% increased shop item rarity
+15% increased monster item rarity"
+rarity = 2
+cost = 40
+modifier_set = SubResource("Modifiers")

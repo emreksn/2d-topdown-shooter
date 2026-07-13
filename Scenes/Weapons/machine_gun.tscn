@@ -1,0 +1,26 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Weapons/machine_gun.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://Scenes/Combat/projectile.tscn" id="2_projectile"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_component.gd" id="3_stats"]
+[ext_resource type="Resource" path="res://Data/Stats/stat_catalog.tres" id="4_catalog"]
+[ext_resource type="Resource" path="res://Data/Stats/machine_gun_stats.tres" id="5_profile"]
+
+[node name="MachineGun" type="Node2D"]
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_projectile")
+pellet_count = 1
+spread_degrees = 0.0
+
+[node name="StatComponent" type="Node" parent="."]
+script = ExtResource("3_stats")
+domain = &"weapon"
+catalog = ExtResource("4_catalog")
+base_profile = ExtResource("5_profile")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-13, -4, 17, -4, 17, 3, 2, 3, 2, 8, -6, 8, -6, 3, -13, 3)
+color = Color(0.72, 0.9, 1, 1)
+
+[node name="ProjectileOrigin" type="Marker2D" parent="."]
+position = Vector2(20, 0)

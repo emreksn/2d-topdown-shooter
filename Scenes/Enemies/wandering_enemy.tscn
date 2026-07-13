@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/enemy.tscn" id="1_base"]
+[ext_resource type="Script" path="res://Scripts/Enemies/Behaviors/wander_behavior.gd" id="2_behavior"]
+[ext_resource type="Resource" path="res://Data/Stats/wandering_enemy_stats.tres" id="3_profile"]
+
+[node name="WanderingEnemy" instance=ExtResource("1_base")]
+modulate = Color(0.45, 1, 0.55, 1)
+movement_speed = 35.0
+movement_behavior = NodePath("MovementBehavior")
+targeting_component = NodePath("")
+
+[node name="MovementBehavior" type="Node" parent="." index="7"]
+script = ExtResource("2_behavior")
+
+[node name="StatComponent" parent="." index="2"]
+base_profile = ExtResource("3_profile")

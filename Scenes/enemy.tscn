@@ -1,0 +1,92 @@
+[gd_scene load_steps=20 format=3 uid="uid://bjndpbcexe7lg"]
+
+[ext_resource type="Script" uid="uid://b40buoompy6ci" path="res://Scripts/Enemies/enemy.gd" id="1_0830c"]
+[ext_resource type="Texture2D" uid="uid://cgnhmqruv3l55" path="res://icon.svg" id="1_hghv2"]
+[ext_resource type="Script" uid="uid://m8hgrccl35js" path="res://Scripts/Components/health_component.gd" id="3_ghaa6"]
+[ext_resource type="Script" uid="uid://8giobc7nsqep" path="res://Scripts/Components/targeting_component.gd" id="4_1dp5w"]
+[ext_resource type="Script" uid="uid://cpgb6cg0p3ooo" path="res://Scripts/Components/hurtbox.gd" id="5_auwsv"]
+[ext_resource type="Script" path="res://Scripts/Feedback/damage_number_emitter.gd" id="6_emitter"]
+[ext_resource type="PackedScene" path="res://Scenes/Feedback/damage_number.tscn" id="7_number"]
+[ext_resource type="PackedScene" path="res://Scenes/Components/contact_damage_component.tscn" id="8_contact"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_component.gd" id="9_stats"]
+[ext_resource type="Resource" path="res://Data/Stats/stat_catalog.tres" id="10_catalog"]
+[ext_resource type="Resource" path="res://Data/Stats/enemy_stats.tres" id="11_profile"]
+[ext_resource type="Script" path="res://Scripts/Components/monster_scaling_component.gd" id="12_scaling"]
+[ext_resource type="Script" path="res://Scripts/Rewards/monster_reward_component.gd" id="13_rewards"]
+[ext_resource type="PackedScene" path="res://Scenes/Rewards/reward_pickup.tscn" id="14_pickup"]
+[ext_resource type="Shader" uid="uid://csogpvda1i31" path="res://Shaders/walk_squash.gdshader" id="15_walk"]
+[ext_resource type="PackedScene" path="res://Scenes/Rewards/item_pickup.tscn" id="16_item_pickup"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_walk"]
+shader = ExtResource("15_walk")
+shader_parameter/movement_amount = 0.0
+shader_parameter/squash_strength = 0.08
+shader_parameter/walk_speed = 8.0
+shader_parameter/bottom_anchor = 0.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wtoea"]
+size = Vector2(44, 44)
+
+[node name="Enemy" type="CharacterBody2D" unique_id=1242272573 groups=["enemies"]]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_0830c")
+movement_speed = 50.0
+targeting_component = NodePath("TargetingComponent")
+health_component = NodePath("HealthComponent")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=712898189]
+material = SubResource("ShaderMaterial_walk")
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("1_hghv2")
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=458452831]
+shape = SubResource("RectangleShape2D_wtoea")
+
+[node name="StatComponent" type="Node" parent="."]
+script = ExtResource("9_stats")
+domain = &"monster"
+catalog = ExtResource("10_catalog")
+base_profile = ExtResource("11_profile")
+
+[node name="HealthComponent" type="Node" parent="." unique_id=1374965871]
+script = ExtResource("3_ghaa6")
+stat_component = NodePath("../StatComponent")
+
+[node name="TargetingComponent" type="Node" parent="." unique_id=1179297683]
+script = ExtResource("4_1dp5w")
+
+[node name="DamageNumberEmitter" type="Node" parent="."]
+script = ExtResource("6_emitter")
+health_component = NodePath("../HealthComponent")
+hurtbox = NodePath("../Hurtbox")
+damage_number_scene = ExtResource("7_number")
+
+[node name="ContactDamageComponent" parent="." instance=ExtResource("8_contact")]
+
+[node name="MonsterScalingComponent" type="Node" parent="."]
+script = ExtResource("12_scaling")
+stat_component = NodePath("../StatComponent")
+
+[node name="MonsterRewardComponent" type="Node" parent="."]
+script = ExtResource("13_rewards")
+health_component = NodePath("../HealthComponent")
+monster_stats = NodePath("../StatComponent")
+reward_pickup_scene = ExtResource("14_pickup")
+item_pickup_scene = ExtResource("16_item_pickup")
+
+[node name="AttackController" type="Node" parent="." unique_id=1613136714]
+
+[node name="AttackBehaviour" type="Node" parent="AttackController" unique_id=2139619118]
+
+[node name="ProjectileOrigin" type="Marker2D" parent="." unique_id=1000277836]
+
+[node name="Hurtbox" type="Area2D" parent="." unique_id=1964342764]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("5_auwsv")
+health_component = NodePath("../HealthComponent")
+stat_component = NodePath("../StatComponent")
+
+[node name="Collision" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("RectangleShape2D_wtoea")

@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Rewards/item_pickup.gd" id="1_script"]
+
+[node name="ItemPickup" type="Node2D"]
+z_index = 4
+script = ExtResource("1_script")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -70.0
+offset_top = 14.0
+offset_right = 70.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+vertical_alignment = 1

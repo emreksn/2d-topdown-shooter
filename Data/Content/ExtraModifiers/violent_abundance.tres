@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="ContentExtraModifierDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Content/content_extra_modifier_definition.gd" id="1_extra"]
+[ext_resource type="Script" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="Rarity"]
+script = ExtResource("3_modifier")
+stat_id = &"monster_item_rarity_multiplier"
+operation = 1
+value = 25.0
+target_domain = &"monster"
+required_all_tags = Array[StringName]([&"rift"])
+
+[sub_resource type="Resource" id="Contact"]
+script = ExtResource("3_modifier")
+stat_id = &"melee_damage"
+operation = 1
+value = 15.0
+target_domain = &"monster"
+required_all_tags = Array[StringName]([&"rift"])
+
+[sub_resource type="Resource" id="ModifierSet"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Rarity"), SubResource("Contact")])
+
+[resource]
+script = ExtResource("1_extra")
+id = &"violent_abundance"
+display_name = "Violent Abundance"
+compatible_content_kinds = Array[int]([0])
+modifier_set = SubResource("ModifierSet")

@@ -1,0 +1,26 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Weapons/pistol.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://Scenes/Combat/projectile.tscn" id="2_projectile"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_component.gd" id="3_stats"]
+[ext_resource type="Resource" path="res://Data/Stats/stat_catalog.tres" id="4_catalog"]
+[ext_resource type="Resource" path="res://Data/Stats/pistol_stats.tres" id="5_profile"]
+
+[node name="Pistol" type="Node2D"]
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_projectile")
+pellet_count = 1
+spread_degrees = 0.0
+
+[node name="StatComponent" type="Node" parent="."]
+script = ExtResource("3_stats")
+domain = &"weapon"
+catalog = ExtResource("4_catalog")
+base_profile = ExtResource("5_profile")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-12, -6, 14, -6, 14, 2, 3, 2, 3, 11, -5, 11, -5, 2, -12, 2)
+color = Color(0.82, 0.86, 0.95, 1)
+
+[node name="ProjectileOrigin" type="Marker2D" parent="."]
+position = Vector2(18, 0)

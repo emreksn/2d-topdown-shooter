@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="StatProfile" format=3 uid="uid://clsemunctq4ve"]
+
+[ext_resource type="Script" uid="uid://bxds3lcns3xio" path="res://Scripts/Stats/stat_profile.gd" id="1_profile"]
+[ext_resource type="Script" uid="uid://ck27qm1mpxyfg" path="res://Scripts/Stats/stat_value.gd" id="2_value"]
+
+[sub_resource type="Resource" id="Health"]
+script = ExtResource("2_value")
+stat_id = &"maximum_health"
+value = 100.0
+
+[sub_resource type="Resource" id="Movement"]
+script = ExtResource("2_value")
+stat_id = &"movement_speed"
+value = 100.0
+
+[sub_resource type="Resource" id="Toughness"]
+script = ExtResource("2_value")
+stat_id = &"toughness"
+
+[sub_resource type="Resource" id="ExperienceGain"]
+script = ExtResource("2_value")
+stat_id = &"experience_gain_multiplier"
+value = 1.0
+
+[sub_resource type="Resource" id="MonsterItemRarity"]
+script = ExtResource("2_value")
+stat_id = &"monster_item_rarity_multiplier"
+value = 1.0
+
+[sub_resource type="Resource" id="ShopItemRarity"]
+script = ExtResource("2_value")
+stat_id = &"shop_item_rarity_multiplier"
+value = 1.0
+
+[sub_resource type="Resource" id="RelicChance"]
+script = ExtResource("2_value")
+stat_id = &"relic_chance_multiplier"
+value = 1.0
+
+[sub_resource type="Resource" id="ShopRelicChance"]
+script = ExtResource("2_value")
+stat_id = &"shop_relic_chance_multiplier"
+value = 1.0
+
+[sub_resource type="Resource" id="ShopExtraOfferCount"]
+script = ExtResource("2_value")
+stat_id = &"shop_extra_offer_count"
+
+[sub_resource type="Resource" id="ShopRerollCost"]
+script = ExtResource("2_value")
+stat_id = &"shop_reroll_cost_multiplier"
+value = 1.0
+
+[sub_resource type="Resource" id="ShopFreeRerollChance"]
+script = ExtResource("2_value")
+stat_id = &"shop_free_reroll_chance"
+
+[sub_resource type="Resource" id="PickupRange"]
+script = ExtResource("2_value")
+stat_id = &"pickup_range"
+value = 140.0
+
+[sub_resource type="Resource" id="InstantPickup"]
+script = ExtResource("2_value")
+stat_id = &"instant_pickup_chance"
+
+[resource]
+script = ExtResource("1_profile")
+values = Array[ExtResource("2_value")]([SubResource("Health"), SubResource("Movement"), SubResource("Toughness"), SubResource("ExperienceGain"), SubResource("MonsterItemRarity"), SubResource("ShopItemRarity"), SubResource("RelicChance"), SubResource("ShopRelicChance"), SubResource("ShopExtraOfferCount"), SubResource("ShopRerollCost"), SubResource("ShopFreeRerollChance"), SubResource("PickupRange"), SubResource("InstantPickup")])

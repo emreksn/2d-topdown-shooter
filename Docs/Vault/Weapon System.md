@@ -88,7 +88,7 @@ The `hit` tag is not a weapon tag. It represents a hit or damage-resolution even
 
 ## Active Skill compatibility
 
-[[Active Skills]] are not implemented yet, but future skills can require weapon tags. For example, a projectile-only skill can require `projectile`, while a pistol-specific skill can require `pistol`.
+[[Active Skills]] have an early playable foundation. Future skills can require weapon tags. For example, a projectile-only skill can require `projectile`, while a pistol-specific skill can require `pistol`.
 
 ## Related systems
 

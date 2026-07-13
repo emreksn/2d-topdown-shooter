@@ -73,11 +73,14 @@ func _test_shop_weapon_purchase_and_block() -> bool:
 
 	var wave_director := WaveDirector.new()
 	wave_director.state = WaveDirector.State.SHOP
-	root.add_child(wave_director)
 
 	var shop := ShopDirector.new()
 	shop.wave_director = wave_director
+	shop.player = player
 	shop.progression = progression
+	shop.inventory = player.get_node(
+		"PlayerInventoryComponent"
+	) as PlayerInventoryComponent
 	shop.weapon_loadout = loadout
 	root.add_child(shop)
 

@@ -36,7 +36,7 @@ Weapons search for the nearest enemy within their targeting range, rotate toward
 
 ## Active skills
 
-[[Active Skills]] are planned, not implemented. The current design allows the player to equip at most two Active Skills for use during a wave. Equipped skills will be locked while a wave is active and changeable between rounds.
+[[Active Skills]] have an early playable foundation. The player can equip at most two Active Skills for use during a wave. The first implemented skills are Bulletstorm Volley and Dash.
 
 ## Direction
 

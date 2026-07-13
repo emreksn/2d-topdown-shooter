@@ -13,6 +13,11 @@ script = ExtResource("2_value")
 stat_id = &"movement_speed"
 value = 100.0
 
+[sub_resource type="Resource" id="AttackRate"]
+script = ExtResource("2_value")
+stat_id = &"attack_rate"
+value = 1.0
+
 [sub_resource type="Resource" id="Toughness"]
 script = ExtResource("2_value")
 stat_id = &"toughness"
@@ -66,4 +71,4 @@ stat_id = &"instant_pickup_chance"
 
 [resource]
 script = ExtResource("1_profile")
-values = Array[ExtResource("2_value")]([SubResource("Health"), SubResource("Movement"), SubResource("Toughness"), SubResource("ExperienceGain"), SubResource("MonsterItemRarity"), SubResource("ShopItemRarity"), SubResource("RelicChance"), SubResource("ShopRelicChance"), SubResource("ShopExtraOfferCount"), SubResource("ShopRerollCost"), SubResource("ShopFreeRerollChance"), SubResource("PickupRange"), SubResource("InstantPickup")])
+values = Array[ExtResource("2_value")]([SubResource("Health"), SubResource("Movement"), SubResource("AttackRate"), SubResource("Toughness"), SubResource("ExperienceGain"), SubResource("MonsterItemRarity"), SubResource("ShopItemRarity"), SubResource("RelicChance"), SubResource("ShopRelicChance"), SubResource("ShopExtraOfferCount"), SubResource("ShopRerollCost"), SubResource("ShopFreeRerollChance"), SubResource("PickupRange"), SubResource("InstantPickup")])

@@ -9,6 +9,8 @@ extends Area2D
 var _direction := Vector2.RIGHT
 var _damage_packet: DamagePacket
 var _has_hit: bool = false
+var _debug_enabled: bool = false
+var _debug_label: String = ""
 
 func _ready() -> void:
 	_resolve_arena_bounds()
@@ -18,17 +20,25 @@ func _ready() -> void:
 func setup(
 	direction: Vector2,
 	damage_packet: DamagePacket,
-	resolved_speed: float
+	resolved_speed: float,
+	debug_enabled: bool = false,
+	debug_label: String = ""
 ) -> void:
 	_direction = direction.normalized()
 	_damage_packet = damage_packet
 	speed = resolved_speed
 	rotation = _direction.angle()
+	_debug_enabled = debug_enabled
+	_debug_label = debug_label
 
 func _physics_process(delta: float) -> void:
 	global_position += _direction * speed * delta
 	failsafe_lifetime -= delta
-	if failsafe_lifetime <= 0.0 or _is_outside_arena():
+	if failsafe_lifetime <= 0.0:
+		_print_debug_result("MISS lifetime")
+		queue_free()
+	elif _is_outside_arena():
+		_print_debug_result("MISS arena")
 		queue_free()
 
 func _resolve_arena_bounds() -> void:
@@ -54,8 +64,16 @@ func _on_area_entered(area: Area2D) -> void:
 	_has_hit = true
 	var hurtbox := area as Hurtbox
 	hurtbox.receive_damage(_damage_packet)
+	_print_debug_result("HIT %s" % hurtbox.name)
 	queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body is StaticBody2D:
+		_print_debug_result("MISS wall")
 		queue_free()
+
+func _print_debug_result(result: String) -> void:
+	if not _debug_enabled:
+		return
+	var label := _debug_label if not _debug_label.is_empty() else "Projectile"
+	print("%s | %s" % [label, result])

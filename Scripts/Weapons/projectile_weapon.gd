@@ -11,13 +11,15 @@ extends Weapon
 @onready var projectile_origin: Marker2D = $ProjectileOrigin
 
 var _random := RandomNumberGenerator.new()
+var active_skill_aim_jitter_degrees: float = 0.0
+var active_skill_force_single_projectile: bool = false
 
 func _ready() -> void:
 	_random.randomize()
 	super._ready()
 
 func perform_basic_attack(target_node: Node2D) -> void:
-	if projectile_scene == null or not is_instance_valid(target_node):
+	if projectile_scene == null:
 		return
 
 	var projectile_parent := get_tree().get_first_node_in_group(&"projectiles_container")
@@ -40,11 +42,21 @@ func perform_basic_attack(target_node: Node2D) -> void:
 		attack_tags,
 		StatModifier.Scope.LOCAL
 	)
-	var base_direction := projectile_origin.global_position.direction_to(
-		target_node.global_position
+	var base_direction := (
+		active_skill_forced_attack_direction.normalized()
+		if not active_skill_forced_attack_direction.is_zero_approx()
+		else projectile_origin.global_position.direction_to(
+			target_node.global_position
+		)
 	)
-	var clamped_pellet_count: int = maxi(pellet_count, 1)
-	var spread_radians := deg_to_rad(spread_degrees)
+	var clamped_pellet_count: int = 1 if active_skill_force_single_projectile else maxi(pellet_count, 1)
+	var resolved_spread_degrees := 0.0 if active_skill_force_single_projectile else spread_degrees
+	var resolved_spread_randomness := (
+		0.0
+		if active_skill_force_single_projectile
+		else spread_randomness_degrees
+	)
+	var spread_radians := deg_to_rad(resolved_spread_degrees)
 	for pellet_index: int in range(clamped_pellet_count):
 		var projectile := projectile_scene.instantiate() as Projectile
 		if projectile == null:
@@ -62,17 +74,26 @@ func perform_basic_attack(target_node: Node2D) -> void:
 			spread_radians * 0.5,
 			t
 		)
-		if spread_randomness_degrees > 0.0:
+		if resolved_spread_randomness > 0.0:
 			angle_offset += deg_to_rad(
 				_random.randf_range(
-					-spread_randomness_degrees,
-					spread_randomness_degrees
+					-resolved_spread_randomness,
+					resolved_spread_randomness
+				)
+			)
+		if active_skill_aim_jitter_degrees > 0.0:
+			angle_offset += deg_to_rad(
+				_random.randf_range(
+					-active_skill_aim_jitter_degrees,
+					active_skill_aim_jitter_degrees
 				)
 			)
 		projectile.setup(
 			base_direction.rotated(angle_offset),
 			_clone_damage_packet(packet),
-			projectile_speed
+			projectile_speed,
+			active_skill_debug_prints,
+			active_skill_last_projectile_debug_label
 		)
 
 func _clone_damage_packet(packet: DamagePacket) -> DamagePacket:

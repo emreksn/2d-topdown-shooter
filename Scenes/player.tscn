@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://cnp3gsysdfr1i"]
+[gd_scene load_steps=25 format=3 uid="uid://cnp3gsysdfr1i"]
 
 [ext_resource type="Script" uid="uid://d2unj21ma42g5" path="res://Scripts/player.gd" id="1_cvnsp"]
 [ext_resource type="Texture2D" uid="uid://cgnhmqruv3l55" path="res://icon.svg" id="1_v0iea"]
@@ -16,6 +16,10 @@
 [ext_resource type="Script" path="res://Scripts/Components/player_progression_component.gd" id="14_progression"]
 [ext_resource type="Script" path="res://Scripts/UI/player_progression_hud.gd" id="15_progression_hud"]
 [ext_resource type="Script" path="res://Scripts/Items/player_inventory_component.gd" id="16_inventory"]
+[ext_resource type="Script" path="res://Scripts/ActiveSkills/active_skill_loadout_component.gd" id="17_skill_loadout"]
+[ext_resource type="Script" path="res://Scripts/UI/active_skill_hud.gd" id="18_skill_hud"]
+[ext_resource type="Resource" path="res://Data/ActiveSkills/bulletstorm_volley.tres" id="19_bulletstorm"]
+[ext_resource type="Resource" path="res://Data/ActiveSkills/dash.tres" id="20_dash"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_walk"]
 shader = ExtResource("3_walk")
@@ -100,6 +104,14 @@ stat_component = NodePath("../StatComponent")
 [node name="WeaponLoadoutComponent" type="Node" parent="."]
 script = ExtResource("4_loadout")
 weapon_mount = NodePath("../WeaponMount")
+
+[node name="ActiveSkillLoadoutComponent" type="Node" parent="."]
+script = ExtResource("17_skill_loadout")
+player = NodePath("..")
+stat_component = NodePath("../StatComponent")
+weapon_loadout = NodePath("../WeaponLoadoutComponent")
+skill_slot_1 = ExtResource("19_bulletstorm")
+skill_slot_2 = ExtResource("20_dash")
 
 [node name="Hurtbox" type="Area2D" parent="."]
 collision_layer = 4
@@ -203,3 +215,14 @@ text = "LV 1    XP 0 / 100"
 horizontal_alignment = 1
 vertical_alignment = 1
 mouse_filter = 2
+
+[node name="ActiveSkillHUD" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 24.0
+offset_top = 124.0
+offset_right = 404.0
+offset_bottom = 156.0
+mouse_filter = 2
+script = ExtResource("18_skill_hud")
+active_skill_loadout = NodePath("../../ActiveSkillLoadoutComponent")

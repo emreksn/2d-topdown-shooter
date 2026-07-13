@@ -9,6 +9,8 @@ extends CharacterBody2D
 var characterDirection: Vector2
 var movementAmount: float = 0.0
 var walkMaterial: ShaderMaterial
+var dashVelocity := Vector2.ZERO
+var dashTimeRemaining: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite
 @onready var statComponent: StatComponent = $StatComponent
@@ -31,7 +33,13 @@ func _physics_process(delta: float) -> void:
 		if is_instance_valid(statComponent)
 		else characterSpeed
 	)
-	velocity = characterDirection * movementSpeed
+	if dashTimeRemaining > 0.0:
+		dashTimeRemaining = maxf(dashTimeRemaining - delta, 0.0)
+		velocity = dashVelocity
+		if dashTimeRemaining <= 0.0:
+			dashVelocity = Vector2.ZERO
+	else:
+		velocity = characterDirection * movementSpeed
 	move_and_slide()
 
 	var targetMovementAmount := 0.0 if characterDirection.is_zero_approx() else 1.0
@@ -40,4 +48,17 @@ func _physics_process(delta: float) -> void:
 		targetMovementAmount,
 		delta * walkSquashTransitionSpeed
 	)
-	walkMaterial.set_shader_parameter("movement_amount", movementAmount)
+	if walkMaterial != null:
+		walkMaterial.set_shader_parameter("movement_amount", movementAmount)
+
+func start_dash(
+	direction: Vector2,
+	distance: float,
+	duration: float
+) -> void:
+	var dash_direction := direction.normalized()
+	if dash_direction.is_zero_approx():
+		dash_direction = Vector2.RIGHT
+	var dash_duration := maxf(duration, 0.01)
+	dashVelocity = dash_direction * (distance / dash_duration)
+	dashTimeRemaining = dash_duration

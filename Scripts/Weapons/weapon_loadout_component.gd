@@ -30,6 +30,7 @@ func equip_offer(offer: WeaponOffer) -> bool:
 
 func equip_offer_in_slot(slot_index: int, offer: WeaponOffer) -> bool:
 	_ensure_slots()
+	_resolve_weapon_mount()
 	if (
 		slot_index < 0
 		or slot_index >= SLOT_COUNT
@@ -45,6 +46,7 @@ func equip_offer_in_slot(slot_index: int, offer: WeaponOffer) -> bool:
 	weapon.weapon_definition = offer.definition
 	weapon.position = SLOT_POSITIONS[slot_index]
 	weapon_mount.add_child(weapon)
+	weapon.resolve_stat_components()
 	equipped_offers[slot_index] = offer
 	equipped_nodes[slot_index] = weapon
 	_apply_offer_modifiers(weapon, offer)
@@ -138,3 +140,10 @@ func _ensure_slots() -> void:
 		equipped_offers.append(null)
 	while equipped_nodes.size() < SLOT_COUNT:
 		equipped_nodes.append(null)
+
+func _resolve_weapon_mount() -> void:
+	if is_instance_valid(weapon_mount):
+		return
+	var parent := get_parent()
+	if parent != null:
+		weapon_mount = parent.get_node_or_null("WeaponMount") as Node2D

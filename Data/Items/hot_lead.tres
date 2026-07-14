@@ -6,7 +6,7 @@
 
 [sub_resource type="Resource" id="FireDamage"]
 script = ExtResource("3_modifier")
-stat_id = &"fire_damage"
+stat_id = &"elemental_damage"
 value = 8.0
 target_domain = &"player"
 
@@ -18,7 +18,7 @@ modifiers = Array[ExtResource("3_modifier")]([SubResource("FireDamage")])
 script = ExtResource("1_item")
 id = &"hot_lead"
 display_name = "Hot Lead"
-description = "+8 to fire damage"
+description = "+8 to elemental damage"
 rarity = 1
 cost = 21
 modifier_set = SubResource("Modifiers")

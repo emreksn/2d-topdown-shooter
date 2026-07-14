@@ -31,17 +31,17 @@ Rifts are small, unstable portals that appear at predetermined locations during 
 
 Rift modifiers are supplied by the Content choice screen. They stack with applicable normal monster modifiers.
 
-For example, if all monsters have 20% increased item rarity and Rift monsters have another 20%, Rift monsters receive 40% increased item rarity.
+Rift reward and risk modifiers use `more` and `less` operations, so each Rift modifier is multiplicative instead of being added into a shared increased bucket.
 
 Current Rift variants:
 
 - Stable Rift: no extra modifiers.
-- Prosperous Rift: 60% increased gold granted by Rift monsters; 20% decreased experience granted by Rift monsters.
-- Blessed Rift: 60% increased experience granted by Rift monsters; 20% decreased gold granted by Rift monsters.
-- Bountiful Rift: 45% increased item quantity for Rift monsters; 35% increased monster item rarity for Rift monsters; 25% increased Rift monster maximum health; 10% increased Rift monster melee damage.
-- Infested Rift: +1 Rift portal; +2 Rift monsters per portal; 20% decreased gold granted by Rift monsters; 20% decreased experience granted by Rift monsters.
+- Prosperous Rift: 60% more gold granted by Rift monsters; 20% less experience granted by Rift monsters.
+- Blessed Rift: 60% more experience granted by Rift monsters; 20% less gold granted by Rift monsters.
+- Bountiful Rift: 45% more item quantity for Rift monsters; 35% more monster item rarity for Rift monsters; 25% more Rift monster maximum health; 10% more Rift monster melee damage.
+- Infested Rift: +1 Rift portal; +2 Rift monsters per portal; 20% less gold granted by Rift monsters; 20% less experience granted by Rift monsters.
 
-Apex Rift is planned for elite-focused Rift content, but it is not currently in the offer pool.
+Apex Rift is planned for rare-monster-focused Rift content, but it is not currently in the offer pool.
 
 Each Rift offer also rolls one extra modifier from the [[Content]] extra modifier pool. Extra modifiers are shown separately from the variant's inherent grants in the Content choice UI.
 

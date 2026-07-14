@@ -6,7 +6,7 @@
 [sub_resource type="Resource" id="Damage"]
 script = ExtResource("2_value")
 stat_id = &"physical_damage"
-value = 13.5
+value = 15.0
 
 [sub_resource type="Resource" id="AttackRate"]
 script = ExtResource("2_value")

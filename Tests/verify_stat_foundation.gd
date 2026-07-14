@@ -58,14 +58,7 @@ func _test_conversion() -> bool:
 	var weapon := _make_stats(&"weapon", StatIds.PHYSICAL_DAMAGE, 100.0)
 	var actor := _make_stats(&"player", &"", 0.0)
 	var conversions: Array[DamageConversion] = [
-		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.LIGHTNING, 50.0),
-		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.FIRE, 50.0),
-		_make_conversion(
-			DamageTypeIds.PHYSICAL,
-			DamageTypeIds.COLD,
-			25.0,
-			DamageConversion.Mode.GAIN_AS_EXTRA
-		)
+		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.ELEMENTAL, 50.0)
 	]
 	var packet := DamageResolver.build_outgoing_packet(
 		weapon,
@@ -74,18 +67,14 @@ func _test_conversion() -> bool:
 		[&"attack", &"projectile"],
 		null
 	)
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.PHYSICAL), 0.0, "converted physical"):
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.PHYSICAL), 50.0, "remaining physical"):
 		return false
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.LIGHTNING), 50.0, "lightning conversion"):
-		return false
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.FIRE), 50.0, "fire conversion"):
-		return false
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.COLD), 25.0, "gain as extra"):
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.ELEMENTAL), 50.0, "elemental conversion"):
 		return false
 
 	var overflow: Array[DamageConversion] = [
-		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.LIGHTNING, 80.0),
-		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.FIRE, 80.0)
+		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.ELEMENTAL, 80.0),
+		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.ELEMENTAL, 80.0)
 	]
 	packet = DamageResolver.build_outgoing_packet(
 		weapon,
@@ -94,22 +83,14 @@ func _test_conversion() -> bool:
 		[&"attack"],
 		null
 	)
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.LIGHTNING), 50.0, "scaled conversion one"):
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.PHYSICAL), 0.0, "overconverted physical"):
 		return false
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.FIRE), 50.0, "scaled conversion two"):
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.ELEMENTAL), 100.0, "overconversion cap"):
 		return false
 
-	var skill_conversion := _make_conversion(
-		DamageTypeIds.PHYSICAL,
-		DamageTypeIds.LIGHTNING,
-		60.0
-	)
+	var skill_conversion := _make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.ELEMENTAL, 60.0)
 	skill_conversion.priority = DamageConversion.Priority.SKILL
-	var other_conversion := _make_conversion(
-		DamageTypeIds.PHYSICAL,
-		DamageTypeIds.FIRE,
-		80.0
-	)
+	var other_conversion := _make_conversion(DamageTypeIds.ELEMENTAL, DamageTypeIds.PHYSICAL, 50.0)
 	packet = DamageResolver.build_outgoing_packet(
 		weapon,
 		actor,
@@ -117,60 +98,140 @@ func _test_conversion() -> bool:
 		[&"attack"],
 		null
 	)
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.LIGHTNING), 60.0, "skill conversion priority"):
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.PHYSICAL), 70.0, "two-stage converted physical"):
 		return false
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.FIRE), 40.0, "remaining conversion capacity"):
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.ELEMENTAL), 30.0, "two-stage converted elemental"):
 		return false
 
-	var chain: Array[DamageConversion] = [
-		_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.LIGHTNING, 100.0),
-		_make_conversion(DamageTypeIds.LIGHTNING, DamageTypeIds.COLD, 100.0),
-		_make_conversion(DamageTypeIds.COLD, DamageTypeIds.FIRE, 100.0)
+	var physical_gain := _make_conversion(
+		DamageTypeIds.PHYSICAL,
+		DamageTypeIds.ELEMENTAL,
+		25.0,
+		DamageConversion.Mode.GAIN_AS_EXTRA
+	)
+	packet = DamageResolver.build_outgoing_packet(
+		weapon,
+		actor,
+		[physical_gain],
+		[&"attack"],
+		null
+	)
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.PHYSICAL), 100.0, "physical source remains after gain"):
+		return false
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.ELEMENTAL), 25.0, "physical gains elemental"):
+		return false
+
+	var elemental_weapon := _make_stats(&"weapon", StatIds.ELEMENTAL_DAMAGE, 100.0)
+	packet = DamageResolver.build_outgoing_packet(
+		elemental_weapon,
+		actor,
+		[_make_conversion(
+			DamageTypeIds.ELEMENTAL,
+			DamageTypeIds.PHYSICAL,
+			30.0,
+			DamageConversion.Mode.GAIN_AS_EXTRA
+		)],
+		[&"attack"],
+		null
+	)
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.ELEMENTAL), 100.0, "elemental source remains after gain"):
+		return false
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.PHYSICAL), 30.0, "elemental gains physical"):
+		return false
+
+	packet = DamageResolver.build_outgoing_packet(
+		elemental_weapon,
+		actor,
+		[_make_conversion(
+			DamageTypeIds.ELEMENTAL,
+			DamageTypeIds.ELEMENTAL,
+			20.0,
+			DamageConversion.Mode.GAIN_AS_EXTRA
+		)],
+		[&"attack"],
+		null
+	)
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.ELEMENTAL), 120.0, "elemental gains elemental once"):
+		return false
+
+	var bidirectional_gain: Array[DamageConversion] = [
+		_make_conversion(
+			DamageTypeIds.PHYSICAL,
+			DamageTypeIds.ELEMENTAL,
+			50.0,
+			DamageConversion.Mode.GAIN_AS_EXTRA
+		),
+		_make_conversion(
+			DamageTypeIds.ELEMENTAL,
+			DamageTypeIds.PHYSICAL,
+			50.0,
+			DamageConversion.Mode.GAIN_AS_EXTRA
+		)
 	]
 	packet = DamageResolver.build_outgoing_packet(
 		weapon,
 		actor,
-		chain,
+		bidirectional_gain,
 		[&"attack"],
 		null
 	)
-	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.FIRE), 100.0, "chained conversion"):
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.PHYSICAL), 100.0, "bidirectional gain does not recurse physical"):
+		return false
+	if not _expect_close(packet.get_damage_by_type(DamageTypeIds.ELEMENTAL), 50.0, "bidirectional gain does not recurse elemental"):
 		return false
 
 	var damage_modifier := _make_modifier(
-		StatIds.DAMAGE,
+		StatIds.PHYSICAL_DAMAGE,
 		StatModifier.Operation.INCREASED,
 		20.0
 	)
-	damage_modifier.required_any_tags = [
-		DamageTypeIds.PHYSICAL,
-		DamageTypeIds.FIRE
-	]
 	var source := ModifierSet.new()
 	source.modifiers = [damage_modifier]
 	actor.add_modifier_source(&"hybrid", source)
 	packet = DamageResolver.build_outgoing_packet(
 		weapon,
 		actor,
-		[_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.FIRE, 100.0)],
+		[_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.ELEMENTAL, 100.0)],
+		[&"attack"],
+		null
+	)
+	if not _expect_close(
+		packet.get_damage_by_type(DamageTypeIds.ELEMENTAL),
+		100.0,
+		"converted damage ignores source-type modifiers"
+	):
+		return false
+
+	var elemental_modifier := _make_modifier(
+		StatIds.ELEMENTAL_DAMAGE,
+		StatModifier.Operation.INCREASED,
+		20.0
+	)
+	var elemental_source := ModifierSet.new()
+	elemental_source.modifiers = [elemental_modifier]
+	actor.add_modifier_source(&"elemental", elemental_source)
+	packet = DamageResolver.build_outgoing_packet(
+		weapon,
+		actor,
+		[_make_conversion(DamageTypeIds.PHYSICAL, DamageTypeIds.ELEMENTAL, 100.0)],
 		[&"attack"],
 		null
 	)
 	return _expect_close(
-		packet.get_damage_by_type(DamageTypeIds.FIRE),
-		120.0,
-		"one modifier matching original and destination once"
+		packet.get_damage_by_type(DamageTypeIds.ELEMENTAL),
+		100.0,
+		"converted weapon base ignores actor added-damage modifiers"
 	)
 
 func _test_defenses() -> bool:
 	var packet := DamagePacket.new()
-	packet.slices = [DamageSlice.new(100.0, DamageTypeIds.FIRE)]
-	var defender := _make_stats(&"monster", StatIds.FIRE_RESISTANCE, 75.0)
+	packet.slices = [DamageSlice.new(100.0, DamageTypeIds.ELEMENTAL)]
+	var defender := _make_stats(&"monster", StatIds.ELEMENTAL_RESISTANCE, 75.0)
 	var result := DamageResolver.resolve_incoming(packet, defender)
 	if not _expect_close(result.total_damage, 25.0, "75 resistance"):
 		return false
 
-	defender = _make_stats(&"monster", StatIds.FIRE_RESISTANCE, -20.0)
+	defender = _make_stats(&"monster", StatIds.ELEMENTAL_RESISTANCE, -20.0)
 	result = DamageResolver.resolve_incoming(packet, defender)
 	if not _expect_close(result.total_damage, 120.0, "negative resistance"):
 		return false
@@ -185,6 +246,102 @@ func _test_defenses() -> bool:
 		result = DamageResolver.resolve_incoming(packet, defender)
 		if not _expect_close(result.total_damage, test_case[1], "toughness"):
 			return false
+
+	defender = _make_stats_from_values(
+		&"monster",
+		{
+			StatIds.TOUGHNESS: 20.0,
+			StatIds.MONSTER_EFFECTIVENESS: 20.0
+		}
+	)
+	result = DamageResolver.resolve_incoming(packet, defender)
+	if not _expect_close(
+		result.total_damage,
+		100.0 / 1.4,
+		"monster effectiveness merges with toughness"
+	):
+		return false
+
+	packet.slices = [DamageSlice.new(100.0, DamageTypeIds.PHYSICAL)]
+	defender = _make_stats(&"monster", StatIds.ARMOUR, 1000.0)
+	result = DamageResolver.resolve_incoming(packet, defender, 1.0, 1.0)
+	if not _expect_close(result.total_damage, 50.0, "armour reduction"):
+		return false
+	if not _expect_close(result.armour_reduction, 0.5, "armour reduction ratio"):
+		return false
+	packet.slices = [DamageSlice.new(1000.0, DamageTypeIds.PHYSICAL)]
+	result = DamageResolver.resolve_incoming(packet, defender, 1.0, 1.0)
+	if not _expect_close(result.armour_reduction, 0.5, "armour rating-only reduction"):
+		return false
+
+	packet.slices = [DamageSlice.new(100.0, DamageTypeIds.PHYSICAL)]
+	defender = _make_stats(&"monster", StatIds.EVASION, 1000.0)
+	result = DamageResolver.resolve_incoming(packet, defender, 0.0, 1.0)
+	if not result.was_evaded:
+		push_error("Evasion roll did not evade.")
+		quit(1)
+		return false
+	if not _expect_close(result.total_damage, 0.0, "evaded damage"):
+		return false
+	if not result.damage_by_type.is_empty():
+		push_error("Evaded hit should not resolve typed damage.")
+		quit(1)
+		return false
+
+	result = DamageResolver.resolve_incoming(packet, defender, 1.0, 0.0)
+	if not result.was_deflected:
+		push_error("Deflection roll did not deflect.")
+		quit(1)
+		return false
+	if not _expect_close(result.total_damage, 80.0, "deflected damage"):
+		return false
+
+	var mixed_packet := DamagePacket.new()
+	mixed_packet.slices = [
+		DamageSlice.new(50.0, DamageTypeIds.PHYSICAL),
+		DamageSlice.new(50.0, DamageTypeIds.ELEMENTAL)
+	]
+	var shield_stats := _make_stats_from_values(
+		&"player",
+		{
+			StatIds.MAXIMUM_HEALTH: 100.0,
+			StatIds.MAXIMUM_ARCANE_SHIELD: 40.0
+		}
+	)
+	var health := HealthComponent.new()
+	health.stat_component = shield_stats
+	root.add_child(health)
+	health.reset()
+	result = DamageResolver.resolve_incoming(mixed_packet, shield_stats, 1.0, 1.0)
+	var life_damage := health.take_resolved_damage(result)
+	if not _expect_close(result.arcane_shield_damage, 40.0, "arcane shield absorb"):
+		return false
+	if not _expect_close(life_damage, 60.0, "arcane shield life passthrough"):
+		return false
+	if not _expect_close(health.current_health, 40.0, "arcane shield health"):
+		return false
+	if not _expect_close(health.current_arcane_shield, 0.0, "arcane shield spent"):
+		return false
+	if not _expect_close(
+		health._get_arcane_shield_recharge_start_delay(),
+		3.0,
+		"default arcane shield recharge start delay"
+	):
+		return false
+
+	var quick_start_stats := _make_stats_from_values(
+		&"player",
+		{
+			StatIds.ARCANE_SHIELD_RECHARGE_START_SPEED: 100.0
+		}
+	)
+	health.stat_component = quick_start_stats
+	if not _expect_close(
+		health._get_arcane_shield_recharge_start_delay(),
+		1.5,
+		"arcane shield recharge start speed"
+	):
+		return false
 	return true
 
 func _test_effectiveness_sources() -> bool:
@@ -210,7 +367,7 @@ func _test_effectiveness_sources() -> bool:
 	var scaling := MonsterScalingComponent.new()
 	root.add_child(scaling)
 	scaling.stat_component = stats
-	if not _expect_close(scaling.get_effectiveness_toughness_factor(), 1.2, "effectiveness toughness"):
+	if not _expect_close(scaling.get_combined_toughness(), 20.0, "combined toughness"):
 		return false
 	if not _expect_close(scaling.get_experience_multiplier(), 1.1, "effectiveness experience"):
 		return false
@@ -228,6 +385,15 @@ func _test_reward_stat_catalog() -> bool:
 		StatIds.GOLD_GRANTED_MULTIPLIER,
 		StatIds.ITEM_RARITY_MULTIPLIER,
 		StatIds.MONSTER_RARITY_MULTIPLIER,
+		StatIds.AREA_OF_EFFECT,
+		StatIds.SLOW_CHANCE,
+		StatIds.SLOW_MAGNITUDE,
+		StatIds.SLOW_DURATION,
+		StatIds.ACCURACY,
+		StatIds.PHYSICAL_RESISTANCE_PENETRATION,
+		StatIds.ELEMENTAL_RESISTANCE_PENETRATION,
+		StatIds.ARMOUR_PENETRATION,
+		StatIds.ARCANE_SHIELD_RECHARGE_START_SPEED,
 		StatIds.EXPERIENCE_GAIN_MULTIPLIER,
 		StatIds.PICKUP_RANGE,
 		StatIds.INSTANT_PICKUP_CHANCE
@@ -239,6 +405,11 @@ func _test_reward_stat_catalog() -> bool:
 		var expected_default := (
 			0.0
 			if stat_id in [
+				StatIds.ARCANE_SHIELD_RECHARGE_START_SPEED,
+				StatIds.ACCURACY,
+				StatIds.PHYSICAL_RESISTANCE_PENETRATION,
+				StatIds.ELEMENTAL_RESISTANCE_PENETRATION,
+				StatIds.ARMOUR_PENETRATION,
 				StatIds.PICKUP_RANGE,
 				StatIds.INSTANT_PICKUP_CHANCE
 			]
@@ -298,16 +469,27 @@ func _make_stats(
 	stat_id: StringName,
 	base_value: float
 ) -> StatComponent:
+	var values := {}
+	if stat_id != &"":
+		values[stat_id] = base_value
+	return _make_stats_from_values(domain, values)
+
+func _make_stats_from_values(
+	domain: StringName,
+	values: Dictionary
+) -> StatComponent:
 	var stats := StatComponent.new()
 	root.add_child(stats)
 	stats.domain = domain
 	stats.catalog = catalog
 	var profile := StatProfile.new()
-	if stat_id != &"":
+	var entries: Array[StatValue] = []
+	for stat_id in values:
 		var entry := StatValue.new()
 		entry.stat_id = stat_id
-		entry.value = base_value
-		profile.values = [entry]
+		entry.value = float(values[stat_id])
+		entries.append(entry)
+	profile.values = entries
 	stats.base_profile = profile
 	return stats
 

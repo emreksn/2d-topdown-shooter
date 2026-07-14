@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="Cooldown"]
+script = ExtResource("3_modifier")
+stat_id = &"cooldown_duration"
+operation = 1
+value = -24.0
+target_domain = &"player"
+
+[sub_resource type="Resource" id="Modifiers"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Cooldown")])
+
+[resource]
+script = ExtResource("1_item")
+id = &"chrono_core"
+display_name = "Chrono Core"
+description = "24% decreased cooldown duration"
+rarity = 3
+cost = 48
+modifier_set = SubResource("Modifiers")

@@ -40,28 +40,77 @@ id = &"physical_damage"
 display_name = "Physical Damage"
 has_minimum = true
 
-[sub_resource type="Resource" id="Stat_lightning_damage"]
+[sub_resource type="Resource" id="Stat_elemental_damage"]
 script = ExtResource("2_definition")
-id = &"lightning_damage"
-display_name = "Lightning Damage"
-has_minimum = true
-
-[sub_resource type="Resource" id="Stat_cold_damage"]
-script = ExtResource("2_definition")
-id = &"cold_damage"
-display_name = "Cold Damage"
-has_minimum = true
-
-[sub_resource type="Resource" id="Stat_fire_damage"]
-script = ExtResource("2_definition")
-id = &"fire_damage"
-display_name = "Fire Damage"
+id = &"elemental_damage"
+display_name = "Elemental Damage"
 has_minimum = true
 
 [sub_resource type="Resource" id="Stat_projectile_speed"]
 script = ExtResource("2_definition")
 id = &"projectile_speed"
 display_name = "Projectile Speed"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_projectile_pierce"]
+script = ExtResource("2_definition")
+id = &"projectile_pierce"
+display_name = "Projectile Pierce"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_projectile_fork"]
+script = ExtResource("2_definition")
+id = &"projectile_fork"
+display_name = "Projectile Fork"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_projectile_chain"]
+script = ExtResource("2_definition")
+id = &"projectile_chain"
+display_name = "Projectile Chain"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_projectile_chain_radius"]
+script = ExtResource("2_definition")
+id = &"projectile_chain_radius"
+display_name = "Projectile Chain Radius"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_area_of_effect"]
+script = ExtResource("2_definition")
+id = &"area_of_effect"
+display_name = "Area of Effect"
+has_minimum = true
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_cooldown_duration"]
+script = ExtResource("2_definition")
+id = &"cooldown_duration"
+display_name = "Cooldown Duration"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_slow_chance"]
+script = ExtResource("2_definition")
+id = &"slow_chance"
+display_name = "Slow Chance"
+has_minimum = true
+has_maximum = true
+maximum = 100.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_slow_magnitude"]
+script = ExtResource("2_definition")
+id = &"slow_magnitude"
+display_name = "Slow Magnitude"
+has_minimum = true
+has_maximum = true
+maximum = 100.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_slow_duration"]
+script = ExtResource("2_definition")
+id = &"slow_duration"
+display_name = "Slow Duration"
 has_minimum = true
 
 [sub_resource type="Resource" id="Stat_melee_damage"]
@@ -76,22 +125,10 @@ id = &"physical_resistance"
 display_name = "Physical Resistance"
 display_as_percentage = true
 
-[sub_resource type="Resource" id="Stat_lightning_res"]
+[sub_resource type="Resource" id="Stat_elemental_res"]
 script = ExtResource("2_definition")
-id = &"lightning_resistance"
-display_name = "Lightning Resistance"
-display_as_percentage = true
-
-[sub_resource type="Resource" id="Stat_cold_res"]
-script = ExtResource("2_definition")
-id = &"cold_resistance"
-display_name = "Cold Resistance"
-display_as_percentage = true
-
-[sub_resource type="Resource" id="Stat_fire_res"]
-script = ExtResource("2_definition")
-id = &"fire_resistance"
-display_name = "Fire Resistance"
+id = &"elemental_resistance"
+display_name = "Elemental Resistance"
 display_as_percentage = true
 
 [sub_resource type="Resource" id="Stat_max_physical_res"]
@@ -103,28 +140,10 @@ has_maximum = true
 maximum = 99.0
 display_as_percentage = true
 
-[sub_resource type="Resource" id="Stat_max_lightning_res"]
+[sub_resource type="Resource" id="Stat_max_elemental_res"]
 script = ExtResource("2_definition")
-id = &"maximum_lightning_resistance"
-display_name = "Maximum Lightning Resistance"
-default_value = 75.0
-has_maximum = true
-maximum = 99.0
-display_as_percentage = true
-
-[sub_resource type="Resource" id="Stat_max_cold_res"]
-script = ExtResource("2_definition")
-id = &"maximum_cold_resistance"
-display_name = "Maximum Cold Resistance"
-default_value = 75.0
-has_maximum = true
-maximum = 99.0
-display_as_percentage = true
-
-[sub_resource type="Resource" id="Stat_max_fire_res"]
-script = ExtResource("2_definition")
-id = &"maximum_fire_resistance"
-display_name = "Maximum Fire Resistance"
+id = &"maximum_elemental_resistance"
+display_name = "Maximum Elemental Resistance"
 default_value = 75.0
 has_maximum = true
 maximum = 99.0
@@ -134,6 +153,75 @@ display_as_percentage = true
 script = ExtResource("2_definition")
 id = &"toughness"
 display_name = "Toughness"
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_accuracy"]
+script = ExtResource("2_definition")
+id = &"accuracy"
+display_name = "Accuracy"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_physical_penetration"]
+script = ExtResource("2_definition")
+id = &"physical_resistance_penetration"
+display_name = "Physical Resistance Penetration"
+has_minimum = true
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_elemental_penetration"]
+script = ExtResource("2_definition")
+id = &"elemental_resistance_penetration"
+display_name = "Elemental Resistance Penetration"
+has_minimum = true
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_armour_penetration"]
+script = ExtResource("2_definition")
+id = &"armour_penetration"
+display_name = "Armour Penetration"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_armour"]
+script = ExtResource("2_definition")
+id = &"armour"
+display_name = "Armour"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_evasion"]
+script = ExtResource("2_definition")
+id = &"evasion"
+display_name = "Evasion"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_deflection"]
+script = ExtResource("2_definition")
+id = &"deflection_damage_reduction"
+display_name = "Deflection Damage Reduction"
+default_value = 20.0
+has_minimum = true
+has_maximum = true
+maximum = 90.0
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_arcane_shield"]
+script = ExtResource("2_definition")
+id = &"maximum_arcane_shield"
+display_name = "Maximum Arcane Shield"
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_arcane_start_speed"]
+script = ExtResource("2_definition")
+id = &"arcane_shield_recharge_start_speed"
+display_name = "Arcane Shield Recharge Start Speed"
+has_minimum = true
+display_as_percentage = true
+
+[sub_resource type="Resource" id="Stat_arcane_rate"]
+script = ExtResource("2_definition")
+id = &"arcane_shield_recharge_rate"
+display_name = "Arcane Shield Recharge Rate"
+default_value = 25.0
+has_minimum = true
 display_as_percentage = true
 
 [sub_resource type="Resource" id="Stat_effectiveness"]
@@ -253,4 +341,4 @@ display_as_percentage = true
 
 [resource]
 script = ExtResource("1_catalog")
-definitions = Array[ExtResource("2_definition")]([SubResource("Stat_max_health"), SubResource("Stat_move_speed"), SubResource("Stat_attack_rate"), SubResource("Stat_targeting_range"), SubResource("Stat_damage"), SubResource("Stat_physical_damage"), SubResource("Stat_lightning_damage"), SubResource("Stat_cold_damage"), SubResource("Stat_fire_damage"), SubResource("Stat_projectile_speed"), SubResource("Stat_melee_damage"), SubResource("Stat_physical_res"), SubResource("Stat_lightning_res"), SubResource("Stat_cold_res"), SubResource("Stat_fire_res"), SubResource("Stat_max_physical_res"), SubResource("Stat_max_lightning_res"), SubResource("Stat_max_cold_res"), SubResource("Stat_max_fire_res"), SubResource("Stat_toughness"), SubResource("Stat_effectiveness"), SubResource("Stat_experience"), SubResource("Stat_quantity"), SubResource("Stat_item_rarity"), SubResource("Stat_monster_item_rarity"), SubResource("Stat_shop_item_rarity"), SubResource("Stat_relic_chance"), SubResource("Stat_shop_relic_chance"), SubResource("Stat_shop_extra_offer_count"), SubResource("Stat_shop_reroll_cost"), SubResource("Stat_shop_free_reroll_chance"), SubResource("Stat_gold"), SubResource("Stat_monster_rarity"), SubResource("Stat_experience_gain"), SubResource("Stat_pickup_range"), SubResource("Stat_instant_pickup")])
+definitions = Array[ExtResource("2_definition")]([SubResource("Stat_max_health"), SubResource("Stat_move_speed"), SubResource("Stat_attack_rate"), SubResource("Stat_targeting_range"), SubResource("Stat_damage"), SubResource("Stat_physical_damage"), SubResource("Stat_elemental_damage"), SubResource("Stat_projectile_speed"), SubResource("Stat_projectile_pierce"), SubResource("Stat_projectile_fork"), SubResource("Stat_projectile_chain"), SubResource("Stat_projectile_chain_radius"), SubResource("Stat_area_of_effect"), SubResource("Stat_cooldown_duration"), SubResource("Stat_slow_chance"), SubResource("Stat_slow_magnitude"), SubResource("Stat_slow_duration"), SubResource("Stat_melee_damage"), SubResource("Stat_physical_res"), SubResource("Stat_elemental_res"), SubResource("Stat_max_physical_res"), SubResource("Stat_max_elemental_res"), SubResource("Stat_toughness"), SubResource("Stat_accuracy"), SubResource("Stat_physical_penetration"), SubResource("Stat_elemental_penetration"), SubResource("Stat_armour_penetration"), SubResource("Stat_armour"), SubResource("Stat_evasion"), SubResource("Stat_deflection"), SubResource("Stat_arcane_shield"), SubResource("Stat_arcane_start_speed"), SubResource("Stat_arcane_rate"), SubResource("Stat_effectiveness"), SubResource("Stat_experience"), SubResource("Stat_quantity"), SubResource("Stat_item_rarity"), SubResource("Stat_monster_item_rarity"), SubResource("Stat_shop_item_rarity"), SubResource("Stat_relic_chance"), SubResource("Stat_shop_relic_chance"), SubResource("Stat_shop_extra_offer_count"), SubResource("Stat_shop_reroll_cost"), SubResource("Stat_shop_free_reroll_chance"), SubResource("Stat_gold"), SubResource("Stat_monster_rarity"), SubResource("Stat_experience_gain"), SubResource("Stat_pickup_range"), SubResource("Stat_instant_pickup")])

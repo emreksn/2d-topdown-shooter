@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Weapons/weapon_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://Scenes/Weapons/pistol.tscn" id="2_scene"]
+[ext_resource type="Script" path="res://Scripts/Stats/modifier_set.gd" id="3_set"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_modifier.gd" id="4_modifier"]
+
+[sub_resource type="Resource" id="SlowChance"]
+script = ExtResource("4_modifier")
+stat_id = &"slow_chance"
+value = 100.0
+scope = 1
+target_domain = &"weapon"
+
+[sub_resource type="Resource" id="SlowMagnitude"]
+script = ExtResource("4_modifier")
+stat_id = &"slow_magnitude"
+value = 25.0
+scope = 1
+target_domain = &"weapon"
+
+[sub_resource type="Resource" id="SlowDuration"]
+script = ExtResource("4_modifier")
+stat_id = &"slow_duration"
+value = 2.0
+scope = 1
+target_domain = &"weapon"
+
+[sub_resource type="Resource" id="ImplicitModifiers"]
+script = ExtResource("3_set")
+modifiers = Array[ExtResource("4_modifier")]([SubResource("SlowChance"), SubResource("SlowMagnitude"), SubResource("SlowDuration")])
+
+[resource]
+script = ExtResource("1_definition")
+id = &"pistol_slow"
+display_name = "Chilling Pistol"
+tags = Array[StringName]([&"weapon", &"projectile", &"pistol", &"slow"])
+weapon_scene = ExtResource("2_scene")
+base_cost = 24
+implicit_modifier_set = SubResource("ImplicitModifiers")

@@ -22,6 +22,7 @@ var active_skill_debug_prints: bool = false
 var active_skill_forced_attack_direction := Vector2.ZERO
 var active_skill_last_projectile_debug_label: String = ""
 var active_skill_use_actor_attack_rate: bool = false
+var active_skill_attack_tags: Array[StringName] = []
 
 func _ready() -> void:
 	_targeting_random.randomize()
@@ -74,6 +75,9 @@ func get_attack_tags() -> Array[StringName]:
 	else:
 		source_tags.append(&"weapon")
 	for tag in source_tags:
+		if not resolved_tags.has(tag):
+			resolved_tags.append(tag)
+	for tag in active_skill_attack_tags:
 		if not resolved_tags.has(tag):
 			resolved_tags.append(tag)
 	return resolved_tags

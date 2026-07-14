@@ -15,8 +15,12 @@ Actors and weapons resolve values through reusable stat profiles and components.
 
 - Player and monster health and movement.
 - Weapon damage, attack rate, range, and projectile speed.
-- Typed damage, conversion, resistance, and maximum resistance.
-- Toughness.
+- Projectile behavior stats: pierce, fork, chain, and chain radius.
+- Projectile status delivery stats: slow chance, slow magnitude, and slow duration.
+- Skill area and cooldown duration.
+- Physical and Elemental typed damage, conversion, resistance, and maximum resistance.
+- Accuracy, Physical Resistance Penetration, Elemental Resistance Penetration, and Armour Penetration.
+- Toughness, Armour, Evasion, Deflection Damage Reduction, and Arcane Shield.
 - Monster Effectiveness.
 - Experience granted and player experience-gain multipliers.
 - Item quantity and item rarity multipliers.
@@ -50,10 +54,68 @@ Wave definitions and the runtime modifier registry can attach modifier sets to t
 
 Spawned enemies copy their spawn context tags into their `StatComponent` as default context tags. This lets tag-gated monster modifiers apply even when health, rewards, or melee damage ask for a stat without explicitly passing tags.
 
+Fire, cold, and lightning are not stat-backed damage types. Elemental damage is the single damage and resistance family for non-physical damage. Future elemental flavor should live in status/effect mechanics instead of separate damage stats.
+
+Projectile behavior stats currently use flat values:
+
+- `projectile_pierce`: extra Pierce count.
+- `projectile_fork`: extra Fork count.
+- `projectile_chain`: extra Chain count.
+- `projectile_chain_radius`: extra Chain search radius.
+- `slow_chance`: chance for configured projectile hits to apply Slow.
+- `slow_magnitude`: Slow magnitude applied by configured projectile hits.
+- `slow_duration`: Slow duration applied by configured projectile hits.
+
+Skill area stats:
+
+- `area_of_effect`: scales area-skill radius. Frost Nova reads this from the selected bound weapon's local modifiers with `active_skill`, `frost_nova`, `elemental`, `aoe`, and `area` tags.
+- `cooldown_duration`: scales active skill cooldowns. Negative increased modifiers reduce cooldown duration, while more/less modifiers multiply cooldown duration.
+
+Relics and other item definitions can carry `DamageConversion` resources. Current relic conversions use `GAIN_AS_EXTRA`, which adds destination damage from a frozen source pool without consuming the source damage.
+
+Forked projectiles carry the `forked` tag. The default Fork damage penalty is implemented as a `Damage` stat modifier with `Operation.MORE`, value `-30`, target domain `weapon`, and `required_all_tags = [&"forked"]`.
+
+Slow is implemented through `StatusEffectComponent` rather than as generic generated affixes. It applies a temporary `MORE` movement-speed modifier to monsters and exposes an action-speed multiplier for enemy attack components. Specific weapon bases can grant Slow delivery through local weapon stats.
+
+Slow action breakpoints:
+
+- Below 25%: no action speed reduction.
+- 25% or higher: 15% action speed reduction.
+- 50% or higher: 30% action speed reduction.
+
+The current action-speed multiplier is read by contact damage and ranged enemy attack components.
+
 Monster Effectiveness currently:
 
-- Improves effective toughness by 1% per point.
+- Adds into Toughness for monster damage mitigation.
 - Improves experience and item-quantity multipliers by 0.5% per point.
+
+Defensive rating stats currently use rating-only soft-cap curves:
+
+```text
+effective_evasion = max(evasion - attacker_accuracy, 0)
+evade_chance = 75% x effective_evasion / (effective_evasion + 500)
+effective_armour = max(armour - attacker_armour_penetration, 0)
+armour_reduction = 90% x effective_armour / (effective_armour + 800)
+```
+
+Larger hits no longer directly reduce Evasion or Armour. Accuracy reduces the defender's Evasion rating before Evasion and Deflection chances are calculated. Armour Penetration reduces the defender's Armour rating before the Armour formula.
+
+Resistance penetration is type-specific and subtracts from the defender's capped effective resistance before damage is multiplied:
+
+```text
+effective_resistance = max(min(resistance, maximum_resistance) - penetration, -100%)
+```
+
+Natural wave scaling can add flat Armour, Evasion, Physical Resistance, and Elemental Resistance to monsters. Monster rarity can add additional flat Armour/Evasion and resistance. Natural wave and rarity scaling do not add Toughness.
+
+Deflection uses the evasion chance as a second roll when evasion fails. On success, it reduces the hit by Deflection Damage Reduction, which defaults to 20%.
+
+Arcane Shield is a separate pool that only absorbs Elemental damage after mitigation. Physical damage bypasses it. The base recharge start delay is 3 seconds and the default recharge rate is 25% of maximum Arcane Shield per second.
+
+```text
+effective_recharge_start_delay = 3 / (1 + arcane_shield_recharge_start_speed / 100)
+```
 
 ## Monster reward formulas
 

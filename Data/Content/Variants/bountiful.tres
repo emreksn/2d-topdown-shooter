@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Quantity"]
 script = ExtResource("3_modifier")
 stat_id = &"item_quantity_multiplier"
-operation = 1
+operation = 2
 value = 45.0
 target_domain = &"monster"
 required_all_tags = Array[StringName]([&"rift"])
@@ -15,7 +15,7 @@ required_all_tags = Array[StringName]([&"rift"])
 [sub_resource type="Resource" id="Rarity"]
 script = ExtResource("3_modifier")
 stat_id = &"monster_item_rarity_multiplier"
-operation = 1
+operation = 2
 value = 35.0
 target_domain = &"monster"
 required_all_tags = Array[StringName]([&"rift"])
@@ -23,7 +23,7 @@ required_all_tags = Array[StringName]([&"rift"])
 [sub_resource type="Resource" id="Health"]
 script = ExtResource("3_modifier")
 stat_id = &"maximum_health"
-operation = 1
+operation = 2
 value = 25.0
 target_domain = &"monster"
 required_all_tags = Array[StringName]([&"rift"])
@@ -31,7 +31,7 @@ required_all_tags = Array[StringName]([&"rift"])
 [sub_resource type="Resource" id="Contact"]
 script = ExtResource("3_modifier")
 stat_id = &"melee_damage"
-operation = 1
+operation = 2
 value = 10.0
 target_domain = &"monster"
 required_all_tags = Array[StringName]([&"rift"])

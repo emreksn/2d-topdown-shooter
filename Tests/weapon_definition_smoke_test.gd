@@ -14,9 +14,33 @@ func _initialize() -> void:
 	):
 		return
 	if not _test_weapon_tags(
+		"res://Data/Weapons/pistol_slow.tres",
+		[&"attack", &"weapon", &"projectile", &"pistol", &"slow"],
+		&"pistol"
+	):
+		return
+	if not _test_weapon_tags(
+		"res://Data/Weapons/pistol_fork.tres",
+		[&"attack", &"weapon", &"projectile", &"pistol", &"fork"],
+		&"pistol"
+	):
+		return
+	if not _test_weapon_tags(
+		"res://Data/Weapons/pistol_chain.tres",
+		[&"attack", &"weapon", &"projectile", &"pistol", &"chain"],
+		&"pistol"
+	):
+		return
+	if not _test_weapon_tags(
 		"res://Data/Weapons/shotgun.tres",
 		[&"attack", &"weapon", &"projectile", &"shotgun"],
 		&"shotgun"
+	):
+		return
+	if not _test_weapon_tags(
+		"res://Data/Weapons/wand.tres",
+		[&"attack", &"weapon", &"projectile", &"wand", &"elemental"],
+		&"wand"
 	):
 		return
 	if not _test_weapon_tags(

@@ -3,19 +3,18 @@ extends Resource
 
 const SCALING_STATS: Array[StringName] = [
 	StatIds.PHYSICAL_DAMAGE,
-	StatIds.FIRE_DAMAGE,
-	StatIds.LIGHTNING_DAMAGE,
-	StatIds.COLD_DAMAGE,
+	StatIds.ELEMENTAL_DAMAGE,
 	StatIds.ATTACK_RATE,
 	StatIds.TARGETING_RANGE,
-	StatIds.PROJECTILE_SPEED
+	StatIds.PROJECTILE_SPEED,
+	StatIds.PROJECTILE_PIERCE,
+	StatIds.PROJECTILE_FORK,
+	StatIds.PROJECTILE_CHAIN
 ]
 
 const AFFIX_STATS: Array[StringName] = [
 	StatIds.PHYSICAL_DAMAGE,
-	StatIds.FIRE_DAMAGE,
-	StatIds.LIGHTNING_DAMAGE,
-	StatIds.COLD_DAMAGE,
+	StatIds.ELEMENTAL_DAMAGE,
 	StatIds.ATTACK_RATE,
 	StatIds.TARGETING_RANGE,
 	StatIds.PROJECTILE_SPEED
@@ -25,6 +24,7 @@ var definition: WeaponDefinition
 var rarity: ItemDefinition.Rarity = ItemDefinition.Rarity.COMMON
 var stat_multiplier: float = 1.0
 var modifier_set: ModifierSet
+var implicit_modifiers: Array[StatModifier] = []
 var affix_modifiers: Array[StatModifier] = []
 
 static func create(
@@ -38,6 +38,7 @@ static func create(
 	offer.stat_multiplier = get_stat_multiplier(rolled_rarity)
 	offer.modifier_set = ModifierSet.new()
 	offer.modifier_set.modifiers = []
+	offer._add_implicit_modifiers()
 	offer._add_rarity_scaling_modifiers()
 	offer._roll_affixes(rng)
 	return offer
@@ -95,6 +96,8 @@ func get_stat_display_text() -> String:
 			"%sx base weapon stats"
 			% _format_number(stat_multiplier)
 		)
+	for modifier in implicit_modifiers:
+		lines.append("Implicit: %s" % ItemDefinition._format_modifier_line(modifier))
 	for modifier in affix_modifiers:
 		lines.append(ItemDefinition._format_modifier_line(modifier))
 	if lines.is_empty():
@@ -108,6 +111,16 @@ func instantiate_weapon() -> Weapon:
 	if weapon == null:
 		return null
 	return weapon
+
+func _add_implicit_modifiers() -> void:
+	if definition == null or definition.implicit_modifier_set == null:
+		return
+	for modifier in definition.implicit_modifier_set.modifiers:
+		if modifier == null:
+			continue
+		var copy := modifier.duplicate(true) as StatModifier
+		implicit_modifiers.append(copy)
+		modifier_set.modifiers.append(copy)
 
 func _add_rarity_scaling_modifiers() -> void:
 	if is_equal_approx(stat_multiplier, 1.0):
@@ -166,7 +179,7 @@ func _get_affix_value(
 	match stat_id:
 		StatIds.PHYSICAL_DAMAGE:
 			return 10.0 * tier
-		StatIds.FIRE_DAMAGE, StatIds.LIGHTNING_DAMAGE, StatIds.COLD_DAMAGE:
+		StatIds.ELEMENTAL_DAMAGE:
 			return 8.0 * tier
 		StatIds.ATTACK_RATE:
 			return 12.0 * tier
@@ -174,6 +187,8 @@ func _get_affix_value(
 			return 10.0 * tier
 		StatIds.PROJECTILE_SPEED:
 			return 10.0 * tier
+		StatIds.PROJECTILE_PIERCE, StatIds.PROJECTILE_FORK, StatIds.PROJECTILE_CHAIN:
+			return 1.0
 		_:
 			return 1.0 * tier
 

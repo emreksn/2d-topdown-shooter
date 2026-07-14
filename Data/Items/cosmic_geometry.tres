@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="Area"]
+script = ExtResource("3_modifier")
+stat_id = &"area_of_effect"
+operation = 1
+value = 42.0
+target_domain = &"weapon"
+
+[sub_resource type="Resource" id="Modifiers"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Area")])
+
+[resource]
+script = ExtResource("1_item")
+id = &"cosmic_geometry"
+display_name = "Cosmic Geometry"
+description = "42% increased area of effect"
+rarity = 3
+cost = 44
+modifier_set = SubResource("Modifiers")

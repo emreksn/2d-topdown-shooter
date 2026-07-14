@@ -9,7 +9,7 @@ Relics are sellable by default. The shop blocks buying a Relic if that Relic's s
 
 ## Relic slots
 
-- Combat Relic: major combat-state fantasies, kill effects, elite-steal effects, and enemy interaction rules.
+- Combat Relic: major combat-state fantasies, kill effects, rare-monster interaction rules, and enemy interaction rules.
 - Weapon Relic: projectile, melee, attack pattern, firing behavior, chain, fork, split, cleave, and repeat-style changes.
 - Economy Relic: gold, experience, item rarity, shop behavior, loot conversion, and wave-end reward rules.
 - Survival Relic: health, shields, recovery, revives, mitigation, and defensive tradeoffs.
@@ -30,6 +30,8 @@ Relics are sellable by default. The shop blocks buying a Relic if that Relic's s
 
 - Head-Taker Crown: Combat Relic.
 - Splintering Chamber: Weapon Relic.
+- Emberglass Prism: Weapon Relic; gain 25% of Physical damage as extra Elemental damage.
+- Ironwood Icon: Combat Relic; gain 25% of Elemental damage as extra Physical damage.
 - Pinata Pact: Economy Relic.
 - Last Breath Locket: Survival Relic.
 - Rift Compass: Wave Relic.
@@ -37,3 +39,5 @@ Relics are sellable by default. The shop blocks buying a Relic if that Relic's s
 ## Design notes
 
 Weapon Relics are intentionally separated from Combat Relics. This lets players take fun projectile or melee behavior changes without giving up major run-fantasy effects such as Headhunter-like combat Relics.
+
+Relics can also carry `DamageConversion` resources. Current authored examples use `GAIN_AS_EXTRA`, letting a build gain one damage type from another without consuming the source damage.

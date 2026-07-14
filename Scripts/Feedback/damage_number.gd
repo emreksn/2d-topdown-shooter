@@ -12,7 +12,25 @@ func display(
 	color: Color = Color.WHITE,
 	size_multiplier: float = 1.0
 ) -> void:
-	label.text = str(roundi(amount)) if is_equal_approx(amount, roundf(amount)) else "%.1f" % amount
+	_play_text(
+		str(roundi(amount)) if is_equal_approx(amount, roundf(amount)) else "%.1f" % amount,
+		color,
+		size_multiplier
+	)
+
+func display_text(
+	text: String,
+	color: Color = Color.WHITE,
+	size_multiplier: float = 1.0
+) -> void:
+	_play_text(text, color, size_multiplier)
+
+func _play_text(
+	text: String,
+	color: Color,
+	size_multiplier: float
+) -> void:
+	label.text = text
 	label.modulate = color
 	scale = Vector2.ONE * size_multiplier
 

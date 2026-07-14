@@ -6,21 +6,22 @@
 ## Current loop
 
 1. Choose a starter [[Weapon System|weapon]] at run start.
-2. Prepare for the wave.
-3. Fight while timed enemy spawning is active.
-4. Clear remaining required enemies after spawning ends.
-5. Auto-collect remaining drops.
-6. Evaluate dropped items and [[Relics]].
-7. Resolve queued [[Level Ups]].
-8. Use the shop.
-9. Select optional [[Content]] for the next wave.
-10. Begin the next preparation phase.
+2. Choose two starter [[Active Skills]] consecutively.
+3. Prepare for the wave.
+4. Fight while timed enemy spawning is active.
+5. Clear remaining required enemies after spawning ends.
+6. Auto-collect remaining drops.
+7. Evaluate dropped items and [[Relics]].
+8. Resolve queued [[Level Ups]].
+9. Use the shop.
+10. Select optional [[Content]] for the next wave.
+11. Begin the next preparation phase.
 
 The current build repeats the final configured wave definition, allowing the run to continue indefinitely.
 
 ## Player
 
-The player has stat-driven movement speed and health. Death reloads the scene. Movement uses a shader-based squash effect for visual feedback.
+The player has stat-driven movement speed and health. Death shows a short "You Died" overlay, pauses the run, then returns to the main menu. Movement uses a shader-based squash effect for visual feedback.
 
 The player HUD displays numeric current/maximum health, total gold, level, and experience progress toward the next level.
 
@@ -36,7 +37,7 @@ Weapons search for the nearest enemy within their targeting range, rotate toward
 
 ## Active skills
 
-[[Active Skills]] have an early playable foundation. The player can equip at most two Active Skills for use during a wave. The first implemented skills are Bulletstorm Volley and Dash.
+[[Active Skills]] have an early playable foundation. The player chooses two starter skills after choosing a starter weapon, then can use those skills during the wave. The first implemented skills are Bulletstorm Volley, Dash, and Frost Nova.
 
 ## Direction
 

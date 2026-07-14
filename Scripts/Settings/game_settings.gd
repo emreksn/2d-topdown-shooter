@@ -186,7 +186,11 @@ func _prepare_window_on_monitor(
 func _center_window(screen_index: int, window_size: Vector2i) -> void:
 	var screen_position := DisplayServer.screen_get_position(screen_index)
 	var screen_size := DisplayServer.screen_get_size(screen_index)
-	var centered_position := screen_position + (screen_size - window_size) / 2
+	var offset := screen_size - window_size
+	var centered_position := screen_position + Vector2i(
+		floori(float(offset.x) * 0.5),
+		floori(float(offset.y) * 0.5)
+	)
 	DisplayServer.window_set_position(centered_position)
 
 func _get_safe_windowed_size(screen_size: Vector2i) -> Vector2i:

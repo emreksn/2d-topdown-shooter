@@ -1,15 +1,16 @@
-[gd_resource type="Resource" script_class="WaveDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="WaveDefinition" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Waves/wave_definition.gd" id="1_script"]
 [ext_resource type="Resource" path="res://Data/Waves/Enemies/wandering_enemy_entry.tres" id="2_wanderer"]
 [ext_resource type="Resource" path="res://Data/Waves/Enemies/chasing_enemy_entry.tres" id="3_chaser"]
 [ext_resource type="Script" path="res://Scripts/Waves/enemy_spawn_entry.gd" id="4_entry"]
+[ext_resource type="Resource" path="res://Data/Waves/Enemies/ranged_enemy_entry.tres" id="5_ranged"]
 
 [resource]
 script = ExtResource("1_script")
 duration = 30.0
-spawn_budget = 36
-enemy_pool = Array[ExtResource("4_entry")]([ExtResource("2_wanderer"), ExtResource("3_chaser")])
+spawn_budget = 30
+enemy_pool = Array[ExtResource("4_entry")]([ExtResource("2_wanderer"), ExtResource("3_chaser"), ExtResource("5_ranged")])
 minimum_pack_size = 2
-maximum_pack_size = 4
+maximum_pack_size = 3
 pack_spread = 70.0

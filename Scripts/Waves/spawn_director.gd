@@ -1,6 +1,30 @@
 class_name SpawnDirector
 extends Node
 
+const MONSTER_RARITY_NORMAL := Enemy.MonsterRarity.NORMAL
+const MONSTER_RARITY_UNCOMMON := Enemy.MonsterRarity.UNCOMMON
+const MONSTER_RARITY_RARE := Enemy.MonsterRarity.RARE
+const MONSTER_RARITY_AUTO := -1
+const MONSTER_RARITY_COST_MULTIPLIERS := {
+	MONSTER_RARITY_NORMAL: 1,
+	MONSTER_RARITY_UNCOMMON: 3,
+	MONSTER_RARITY_RARE: 5
+}
+const MONSTER_RARITY_STAY_WEIGHT := 70.0
+const MONSTER_RARITY_UNCOMMON_WEIGHT := 22.0
+const MONSTER_RARITY_RARE_WEIGHT := 6.0
+const MONSTER_RARITY_MULTIPLIER_STRENGTH := 1.0
+const MONSTER_RARITY_MAX_EFFECTIVE_MULTIPLIER := 3.0
+const NATURAL_DEFENSE_RATING_STEP_WAVES := 5
+const NATURAL_DEFENSE_RATING_PER_STEP := 25.0
+const NATURAL_RESISTANCE_STEP_WAVES := 10
+const NATURAL_RESISTANCE_PER_STEP := 10.0
+const UNCOMMON_RARITY_ARMOUR := 50.0
+const UNCOMMON_RARITY_EVASION := 50.0
+const RARE_RARITY_ARMOUR := 100.0
+const RARE_RARITY_EVASION := 100.0
+const RARITY_RESISTANCE_BONUS := 15.0
+
 signal enemy_spawned(enemy: Node2D)
 signal active_enemy_count_changed(count: int)
 signal spawning_finished
@@ -17,6 +41,13 @@ signal pack_warning_started(positions: Array[Vector2], duration: float)
 @export_range(0.0, 300.0, 1.0) var spawn_wall_margin: float = 48.0
 @export var arena_bounds := Rect2(-770.0, -470.0, 1540.0, 940.0)
 @export var debug_enemy_tracking: bool = false
+@export_range(1, 200, 1, "or_greater") var cleanup_free_batch_size: int = 24
+@export_range(0, 512, 1, "or_greater") var max_pooled_enemies_per_scene: int = 96
+
+var forced_monster_rarity: int = MONSTER_RARITY_AUTO
+var forced_monster_rarity_upgrade: int = MONSTER_RARITY_AUTO
+var forced_rare_modifier_ids: Array[StringName] = []
+var forced_rare_modifier_count: int = -1
 
 var active_enemy_count: int:
 	get:
@@ -42,6 +73,10 @@ var _spawn_schedule: Array[Dictionary] = []
 var _next_scheduled_pack_index: int = 0
 var _elapsed_wave_time: float = 0.0
 var _spawn_cutoff_time: float = 0.0
+var _monster_base_health_multiplier: float = 1.0
+var _discard_generation: int = 0
+var _enemy_pools: Dictionary = {}
+var _enemy_pool_keys: Dictionary = {}
 
 func _ready() -> void:
 	_random.randomize()
@@ -96,6 +131,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	):
 		dump_active_enemy_tracking("F9 debug dump")
 
+func _exit_tree() -> void:
+	for pool_value in _enemy_pools.values():
+		var pool: Array[Node2D] = []
+		pool.assign(pool_value)
+		for enemy in pool:
+			if is_instance_valid(enemy):
+				enemy.queue_free()
+	_enemy_pools.clear()
+	_enemy_pool_keys.clear()
+
 func begin_wave(definition: WaveDefinition, wave_number: int) -> void:
 	_cancel_pending_packs()
 	_last_tracking_mismatch_count = -1
@@ -119,11 +164,13 @@ func begin_wave(definition: WaveDefinition, wave_number: int) -> void:
 	_pack_spread = definition.pack_spread
 	_mix_enemy_types_within_pack = definition.mix_enemy_types_within_pack
 	_spawn_warning_duration = definition.spawn_warning_duration
+	_monster_base_health_multiplier = maxf(definition.monster_base_health_multiplier, 0.0)
 	_wave_context_tags = [&"monster", StringName("wave_%d" % wave_number)]
 	for tag in definition.context_tags:
 		if not _wave_context_tags.has(tag):
 			_wave_context_tags.append(tag)
 	_wave_modifier_sources.clear()
+	_add_natural_wave_defense_source(wave_number)
 	_is_clearing = false
 	for index: int in range(definition.monster_modifier_sets.size()):
 		var modifier_set := definition.monster_modifier_sets[index]
@@ -152,13 +199,21 @@ func begin_clearing() -> void:
 func discard_active_enemies() -> void:
 	stop_spawning(true)
 	_is_clearing = false
-	if is_instance_valid(enemy_container):
-		for enemy in enemy_container.get_children():
-			if is_instance_valid(enemy):
-				enemy.queue_free()
-	if not _active_enemy_ids.is_empty():
+	_discard_generation += 1
+	if not is_instance_valid(enemy_container):
 		_active_enemy_ids.clear()
 		active_enemy_count_changed.emit(active_enemy_count)
+		return
+
+	var enemies := enemy_container.get_children()
+	if enemies.is_empty():
+		_prune_inactive_enemies()
+		return
+
+	_discard_active_enemies_batched.call_deferred(
+		enemies,
+		_discard_generation
+	)
 
 func dump_active_enemy_tracking(reason: String = "debug dump") -> void:
 	print("[SpawnDirector] %s" % reason)
@@ -197,12 +252,24 @@ func spawn_bonus_enemy(
 	pack_warning_started.emit([clamped_position], warning_duration)
 	_pending_packs.append({
 		"time_remaining": warning_duration,
-		"entries": [entry],
+		"spawns": [{
+			"entry": entry,
+			"rarity_roll": _build_monster_rarity_roll(_get_forced_or_natural_rarity()),
+			"budget_cost": 0
+		}],
 		"positions": [clamped_position],
 		"indicators": indicators,
 		"additional_tags": additional_tags.duplicate()
 	})
 	return true
+
+func get_monster_rarity_chances() -> Dictionary:
+	return {
+		&"uncommon": _get_base_uncommon_chance(),
+		&"rare": _get_base_rare_chance(),
+		&"upgrade_multiplier": _get_effective_monster_rarity_multiplier(),
+		&"normal_upgrade_weights": _get_monster_rarity_upgrade_weights(MONSTER_RARITY_NORMAL)
+	}
 
 func _finish_scheduling() -> void:
 	if not _is_spawning:
@@ -213,12 +280,17 @@ func _finish_scheduling() -> void:
 func _spawn_enemy(
 	entry: EnemySpawnEntry,
 	spawn_position: Vector2,
-	additional_tags: Array[StringName] = []
+	additional_tags: Array[StringName] = [],
+	rarity_roll: Dictionary = {}
 ) -> bool:
-	var enemy := entry.enemy_scene.instantiate() as Node2D
+	var enemy := _acquire_enemy(entry.enemy_scene)
 	if enemy == null:
 		push_warning("EnemySpawnEntry scene must have a Node2D root.")
 		return false
+
+	_apply_monster_base_health_scaling(enemy)
+	if rarity_roll.is_empty():
+		rarity_roll = _build_monster_rarity_roll(_get_forced_or_natural_rarity())
 
 	var context_tags := _wave_context_tags.duplicate()
 	context_tags.append(&"pack")
@@ -228,7 +300,12 @@ func _spawn_enemy(
 	for tag in additional_tags:
 		if not context_tags.has(tag):
 			context_tags.append(tag)
+	if not context_tags.has(rarity_roll["tag"]):
+		context_tags.append(rarity_roll["tag"])
 	var modifier_sources := _wave_modifier_sources.duplicate()
+	var rarity_sources: Dictionary = rarity_roll["modifier_sources"]
+	for source_id in rarity_sources:
+		modifier_sources[source_id] = rarity_sources[source_id]
 	if is_instance_valid(runtime_modifier_registry):
 		var runtime_sources := runtime_modifier_registry.get_applicable_sources(
 			&"monster",
@@ -236,6 +313,14 @@ func _spawn_enemy(
 		)
 		for source_id in runtime_sources:
 			modifier_sources[source_id] = runtime_sources[source_id]
+	if enemy.has_method("configure_monster_rarity"):
+		var modifier_names: Array[String] = []
+		modifier_names.assign(rarity_roll["modifier_names"])
+		enemy.configure_monster_rarity(
+			rarity_roll["rarity"],
+			rarity_roll["display_name"],
+			modifier_names
+		)
 	if enemy.has_method("configure_spawn_context"):
 		enemy.configure_spawn_context(
 			context_tags,
@@ -243,7 +328,11 @@ func _spawn_enemy(
 			runtime_modifier_registry
 		)
 	if enemy.has_method("configure_spawn_reward"):
-		enemy.configure_spawn_reward(entry.cost, 1.0, _wave_number)
+		enemy.configure_spawn_reward(
+			entry.cost,
+			float(rarity_roll["reward_multiplier"]),
+			_wave_number
+		)
 
 	var parent_node := enemy_container if is_instance_valid(enemy_container) else get_tree().current_scene
 	parent_node.add_child(enemy)
@@ -259,14 +348,56 @@ func _spawn_enemy(
 	active_enemy_count_changed.emit(active_enemy_count)
 	return true
 
+func _apply_monster_base_health_scaling(enemy: Node) -> void:
+	if is_equal_approx(_monster_base_health_multiplier, 1.0):
+		return
+	var stats := enemy.get_node_or_null("StatComponent") as StatComponent
+	if stats == null:
+		return
+	var fallback := 0.0
+	if stats.catalog != null:
+		var definition := stats.catalog.get_definition(StatIds.MAXIMUM_HEALTH)
+		if definition != null:
+			fallback = definition.default_value
+	var base_health := stats.get_base_stat(StatIds.MAXIMUM_HEALTH)
+	if base_health <= 0.0:
+		base_health = fallback
+	if base_health <= 0.0:
+		return
+	var profile := (
+		stats.base_profile.duplicate(true) as StatProfile
+		if stats.base_profile != null
+		else StatProfile.new()
+	)
+	_set_profile_base_value(
+		profile,
+		StatIds.MAXIMUM_HEALTH,
+		base_health * _monster_base_health_multiplier
+	)
+	stats.base_profile = profile
+
+func _set_profile_base_value(
+	profile: StatProfile,
+	stat_id: StringName,
+	value: float
+) -> void:
+	for entry in profile.values:
+		if entry != null and entry.stat_id == stat_id:
+			entry.value = value
+			return
+	var entry := StatValue.new()
+	entry.stat_id = stat_id
+	entry.value = value
+	profile.values.append(entry)
+
 func _plan_scheduled_pack(pack: Dictionary) -> bool:
-	var entries: Array[EnemySpawnEntry] = []
-	entries.assign(pack["entries"])
-	if entries.is_empty():
+	var spawns: Array[Dictionary] = []
+	spawns.assign(pack["spawns"])
+	if spawns.is_empty():
 		return false
 	var pack_anchor := _choose_spawn_position(_pack_spread)
 	var positions: Array[Vector2] = []
-	for member_index: int in range(entries.size()):
+	for member_index: int in range(spawns.size()):
 		var offset := Vector2.ZERO
 		if member_index > 0 and _pack_spread > 0.0:
 			offset = Vector2.from_angle(
@@ -284,12 +415,12 @@ func _plan_scheduled_pack(pack: Dictionary) -> bool:
 	pack_warning_started.emit(positions, _spawn_warning_duration)
 
 	if _spawn_warning_duration <= 0.0:
-		_spawn_planned_pack(entries, positions)
+		_spawn_planned_pack(spawns, positions)
 		_free_indicators(indicators)
 	else:
 		_pending_packs.append({
 			"time_remaining": _spawn_warning_duration,
-			"entries": entries,
+			"spawns": spawns,
 			"positions": positions,
 			"indicators": indicators,
 			"additional_tags": []
@@ -305,37 +436,22 @@ func _build_spawn_schedule(definition: WaveDefinition) -> Array[Dictionary]:
 	if spawn_duration <= 0.0 or definition.spawn_budget <= 0:
 		return []
 
-	var normal_budget := definition.spawn_budget
-	var elite_budget := 0
-	if definition.elite_budget_share > 0.0:
-		elite_budget = roundi(
-			float(definition.spawn_budget)
-			* clampf(definition.elite_budget_share, 0.0, 1.0)
-		)
-		normal_budget = maxi(definition.spawn_budget - elite_budget, 0)
-
-	var planned_entries: Array[EnemySpawnEntry] = []
-	planned_entries.append_array(
-		_plan_entries_for_role(EnemySpawnEntry.SpawnRole.NORMAL, normal_budget)
-	)
-	planned_entries.append_array(
-		_plan_entries_for_role(EnemySpawnEntry.SpawnRole.ELITE, elite_budget)
-	)
-	planned_entries.shuffle()
+	var planned_spawns := _plan_spawns_for_budget(definition.spawn_budget)
+	planned_spawns.shuffle()
 
 	var planned_packs: Array[Dictionary] = []
-	while not planned_entries.is_empty():
-		var pack_entries: Array[EnemySpawnEntry] = []
+	while not planned_spawns.is_empty():
+		var pack_spawns: Array[Dictionary] = []
 		var desired_pack_size: int = _random.randi_range(
 			_minimum_pack_size,
 			_maximum_pack_size
 		)
 		while (
-			pack_entries.size() < desired_pack_size
-			and not planned_entries.is_empty()
+			pack_spawns.size() < desired_pack_size
+			and not planned_spawns.is_empty()
 		):
-			pack_entries.append(planned_entries.pop_back())
-		planned_packs.append({"entries": pack_entries})
+			pack_spawns.append(planned_spawns.pop_back())
+		planned_packs.append({"spawns": pack_spawns})
 
 	var window_count := ceili(
 		spawn_duration / maxf(definition.spawn_window_duration, 0.1)
@@ -343,7 +459,7 @@ func _build_spawn_schedule(definition: WaveDefinition) -> Array[Dictionary]:
 	window_count = maxi(window_count, 1)
 	for index: int in range(planned_packs.size()):
 		var window_index := index % window_count
-		var cycle_index := index / window_count
+		var cycle_index := floori(float(index) / float(window_count))
 		var cycle_count := ceili(float(planned_packs.size()) / float(window_count))
 		var window_start := (
 			float(window_index)
@@ -368,31 +484,28 @@ func _build_spawn_schedule(definition: WaveDefinition) -> Array[Dictionary]:
 	)
 	return planned_packs
 
-func _get_pack_time(
-	index: int,
-	pack_count: int,
-	spawn_duration: float
-) -> float:
-	if pack_count <= 1:
-		return 0.0
-	var t := float(index) / float(pack_count - 1)
-	return clampf(t * spawn_duration, 0.0, spawn_duration)
-
-func _plan_entries_for_role(
-	role: EnemySpawnEntry.SpawnRole,
-	budget: int
-) -> Array[EnemySpawnEntry]:
-	var result: Array[EnemySpawnEntry] = []
+func _plan_spawns_for_budget(budget: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
 	var remaining_budget := budget
 	var safety := 0
 	while remaining_budget > 0 and safety < 10000:
 		safety += 1
-		var entry := _choose_spawn_entry_for_role(role, remaining_budget)
+		var natural_rarity := _roll_budgeted_natural_rarity(remaining_budget)
+		var entry := _choose_spawn_entry(
+			remaining_budget,
+			_get_monster_rarity_cost_multiplier(natural_rarity)
+		)
 		if entry == null:
 			break
-		result.append(entry)
-		remaining_budget -= entry.cost
-		_remaining_budget = maxi(_remaining_budget - entry.cost, 0)
+		var spawn_cost := entry.cost * _get_monster_rarity_cost_multiplier(natural_rarity)
+		var final_rarity := _upgrade_monster_rarity(natural_rarity)
+		result.append({
+			"entry": entry,
+			"rarity_roll": _build_monster_rarity_roll(final_rarity),
+			"budget_cost": spawn_cost
+		})
+		remaining_budget -= spawn_cost
+		_remaining_budget = maxi(_remaining_budget - spawn_cost, 0)
 	return result
 
 func _update_pending_packs(delta: float) -> void:
@@ -402,8 +515,8 @@ func _update_pending_packs(delta: float) -> void:
 		if float(pack["time_remaining"]) > 0.0:
 			continue
 
-		var entries: Array[EnemySpawnEntry] = []
-		entries.assign(pack["entries"])
+		var spawns: Array[Dictionary] = []
+		spawns.assign(pack["spawns"])
 		var positions: Array[Vector2] = []
 		positions.assign(pack["positions"])
 		var indicators: Array[Node2D] = []
@@ -412,7 +525,7 @@ func _update_pending_packs(delta: float) -> void:
 		if pack.has("additional_tags"):
 			additional_tags.assign(pack["additional_tags"])
 		_spawn_planned_pack(
-			entries,
+			spawns,
 			positions,
 			additional_tags
 		)
@@ -420,12 +533,18 @@ func _update_pending_packs(delta: float) -> void:
 		_pending_packs.remove_at(index)
 
 func _spawn_planned_pack(
-	entries: Array[EnemySpawnEntry],
+	spawns: Array[Dictionary],
 	positions: Array[Vector2],
 	additional_tags: Array[StringName] = []
 ) -> void:
-	for index: int in range(mini(entries.size(), positions.size())):
-		_spawn_enemy(entries[index], positions[index], additional_tags)
+	for index: int in range(mini(spawns.size(), positions.size())):
+		var spawn := spawns[index]
+		_spawn_enemy(
+			spawn["entry"],
+			positions[index],
+			additional_tags,
+			spawn["rarity_roll"]
+		)
 
 func _create_spawn_indicator(spawn_position: Vector2) -> SpawnIndicator:
 	if spawn_indicator_scene == null:
@@ -454,9 +573,93 @@ func _free_indicators(indicators: Array[Node2D]) -> void:
 		if is_instance_valid(indicator):
 			indicator.queue_free()
 
-func _choose_spawn_entry_for_role(
-	role: EnemySpawnEntry.SpawnRole,
-	remaining_budget: int
+func _acquire_enemy(enemy_scene: PackedScene) -> Node2D:
+	if enemy_scene == null:
+		return null
+	var scene_key := _get_enemy_scene_key(enemy_scene)
+	var pool: Array[Node2D] = []
+	if _enemy_pools.has(scene_key):
+		pool.assign(_enemy_pools[scene_key])
+
+	while not pool.is_empty():
+		var pooled := pool.pop_back() as Node2D
+		_enemy_pools[scene_key] = pool
+		if not is_instance_valid(pooled):
+			continue
+		if pooled.has_method("reset_for_pool_spawn"):
+			pooled.reset_for_pool_spawn()
+		return pooled
+
+	var enemy := enemy_scene.instantiate() as Node2D
+	if enemy == null:
+		return null
+	if enemy.has_method("capture_pool_baseline"):
+		enemy.capture_pool_baseline()
+	_enemy_pool_keys[enemy.get_instance_id()] = scene_key
+	if enemy.has_method("enable_pool_recycling"):
+		enemy.enable_pool_recycling()
+	if enemy.has_signal("recycle_requested"):
+		var recycle_callable := Callable(self, "_on_enemy_recycle_requested")
+		if not enemy.is_connected("recycle_requested", recycle_callable):
+			enemy.connect("recycle_requested", recycle_callable)
+	return enemy
+
+func _release_enemy_to_pool(enemy: Node2D) -> bool:
+	if not is_instance_valid(enemy):
+		return false
+	var scene_key := String(_enemy_pool_keys.get(enemy.get_instance_id(), ""))
+	if scene_key.is_empty() or max_pooled_enemies_per_scene <= 0:
+		enemy.queue_free()
+		return false
+
+	var parent := enemy.get_parent()
+	if parent != null:
+		parent.remove_child(enemy)
+	if enemy.has_method("reset_for_pool_spawn"):
+		enemy.reset_for_pool_spawn()
+
+	var pool: Array[Node2D] = []
+	if _enemy_pools.has(scene_key):
+		pool.assign(_enemy_pools[scene_key])
+	if pool.size() >= max_pooled_enemies_per_scene:
+		enemy.queue_free()
+		return false
+	pool.append(enemy)
+	_enemy_pools[scene_key] = pool
+	return true
+
+func _get_enemy_scene_key(enemy_scene: PackedScene) -> String:
+	if not enemy_scene.resource_path.is_empty():
+		return enemy_scene.resource_path
+	return str(enemy_scene.get_instance_id())
+
+func _on_enemy_recycle_requested(enemy: Enemy) -> void:
+	_release_enemy_to_pool(enemy)
+
+func _discard_active_enemies_batched(
+	enemies: Array[Node],
+	generation: int
+) -> void:
+	var tree := get_tree()
+	var batch_size := maxi(cleanup_free_batch_size, 1)
+	for index: int in range(enemies.size()):
+		if generation != _discard_generation:
+			return
+		var enemy := enemies[index]
+		if is_instance_valid(enemy):
+			var pooled_enemy := enemy as Node2D
+			if not _release_enemy_to_pool(pooled_enemy):
+				enemy.queue_free()
+		if (
+			tree != null
+			and index < enemies.size() - 1
+			and (index + 1) % batch_size == 0
+		):
+			await tree.process_frame
+
+func _choose_spawn_entry(
+	remaining_budget: int,
+	rarity_cost_multiplier: int = 1
 ) -> EnemySpawnEntry:
 	var candidates: Array[EnemySpawnEntry] = []
 	var total_weight: float = 0.0
@@ -464,8 +667,10 @@ func _choose_spawn_entry_for_role(
 	for entry in _enemy_pool:
 		if (
 			entry != null
-			and entry.spawn_role == role
-			and entry.is_available(_wave_number, remaining_budget)
+			and entry.is_available(
+				_wave_number,
+				floori(float(remaining_budget) / float(rarity_cost_multiplier))
+			)
 		):
 			candidates.append(entry)
 			total_weight += entry.weight
@@ -480,6 +685,335 @@ func _choose_spawn_entry_for_role(
 			return entry
 
 	return candidates.back()
+
+func _get_forced_or_natural_rarity() -> int:
+	if forced_monster_rarity != MONSTER_RARITY_AUTO:
+		return forced_monster_rarity
+	return _upgrade_monster_rarity(_roll_natural_monster_rarity())
+
+func _roll_natural_monster_rarity() -> int:
+	var chances := get_monster_rarity_chances()
+	var rare_chance := float(chances[&"rare"])
+	var uncommon_chance := float(chances[&"uncommon"])
+	if _random.randf() * 100.0 < rare_chance:
+		return MONSTER_RARITY_RARE
+	if _random.randf() * 100.0 < uncommon_chance:
+		return MONSTER_RARITY_UNCOMMON
+	return MONSTER_RARITY_NORMAL
+
+func _roll_budgeted_natural_rarity(remaining_budget: int) -> int:
+	var rarity := (
+		forced_monster_rarity
+		if forced_monster_rarity != MONSTER_RARITY_AUTO
+		else _roll_natural_monster_rarity()
+	)
+	while rarity > MONSTER_RARITY_NORMAL and not _can_afford_rarity(remaining_budget, rarity):
+		rarity -= 1
+	return rarity
+
+func _can_afford_rarity(remaining_budget: int, rarity: int) -> bool:
+	var rarity_cost_multiplier := _get_monster_rarity_cost_multiplier(rarity)
+	for entry in _enemy_pool:
+		if (
+			entry != null
+			and entry.is_available(
+				_wave_number,
+				floori(float(remaining_budget) / float(rarity_cost_multiplier))
+			)
+		):
+			return true
+	return false
+
+func _upgrade_monster_rarity(rarity: int) -> int:
+	if forced_monster_rarity_upgrade != MONSTER_RARITY_AUTO:
+		return clampi(
+			maxi(rarity, forced_monster_rarity_upgrade),
+			MONSTER_RARITY_NORMAL,
+			MONSTER_RARITY_RARE
+		)
+	if rarity >= MONSTER_RARITY_RARE:
+		return rarity
+
+	var weights := _get_monster_rarity_upgrade_weights(rarity)
+	var total_weight := 0.0
+	for weighted_rarity in weights:
+		total_weight += maxf(float(weights[weighted_rarity]), 0.0)
+	if total_weight <= 0.0:
+		return rarity
+
+	var roll := _random.randf_range(0.0, total_weight)
+	for weighted_rarity in [
+		MONSTER_RARITY_NORMAL,
+		MONSTER_RARITY_UNCOMMON,
+		MONSTER_RARITY_RARE
+	]:
+		if not weights.has(weighted_rarity):
+			continue
+		roll -= maxf(float(weights[weighted_rarity]), 0.0)
+		if roll <= 0.0:
+			return int(weighted_rarity)
+	return rarity
+
+func _get_monster_rarity_upgrade_weights(rarity: int) -> Dictionary:
+	var weights := {rarity: MONSTER_RARITY_STAY_WEIGHT}
+	var multiplier_bonus := maxf(
+		_get_effective_monster_rarity_multiplier() - 1.0,
+		0.0
+	)
+	if multiplier_bonus <= 0.0:
+		return weights
+
+	for target_rarity in range(rarity + 1, MONSTER_RARITY_RARE + 1):
+		var relative_index := target_rarity - rarity
+		weights[target_rarity] = (
+			_get_monster_rarity_base_weight(target_rarity)
+			* multiplier_bonus
+			* float(relative_index)
+			* MONSTER_RARITY_MULTIPLIER_STRENGTH
+		)
+	return weights
+
+func _get_monster_rarity_base_weight(rarity: int) -> float:
+	match rarity:
+		MONSTER_RARITY_UNCOMMON:
+			return MONSTER_RARITY_UNCOMMON_WEIGHT
+		MONSTER_RARITY_RARE:
+			return MONSTER_RARITY_RARE_WEIGHT
+	return MONSTER_RARITY_STAY_WEIGHT
+
+func _get_monster_rarity_cost_multiplier(rarity: int) -> int:
+	return int(MONSTER_RARITY_COST_MULTIPLIERS.get(rarity, 1))
+
+func _build_monster_rarity_roll(rarity: int) -> Dictionary:
+	match rarity:
+		MONSTER_RARITY_UNCOMMON:
+			return {
+				"rarity": MONSTER_RARITY_UNCOMMON,
+				"display_name": "Uncommon",
+				"tag": &"uncommon",
+				"reward_multiplier": 1.35,
+				"modifier_sources": {
+					&"monster_rarity:uncommon": _make_uncommon_modifier_set()
+				},
+				"modifier_names": []
+			}
+		MONSTER_RARITY_RARE:
+			var rare_sources := {
+				&"monster_rarity:rare": _make_rare_base_modifier_set()
+			}
+			var modifier_names := _roll_rare_modifier_names()
+			for modifier_name in modifier_names:
+				var modifier_id := _get_rare_modifier_id(modifier_name)
+				rare_sources[StringName("monster_rare:%s" % modifier_id)] = (
+					_make_rare_modifier_set(modifier_id)
+				)
+			return {
+				"rarity": MONSTER_RARITY_RARE,
+				"display_name": "Rare",
+				"tag": &"rare",
+				"reward_multiplier": 2.0,
+				"modifier_sources": rare_sources,
+				"modifier_names": modifier_names
+			}
+	return {
+		"rarity": MONSTER_RARITY_NORMAL,
+		"display_name": "Normal",
+		"tag": &"normal",
+		"reward_multiplier": 1.0,
+		"modifier_sources": {},
+		"modifier_names": []
+	}
+
+func _get_base_uncommon_chance() -> float:
+	return clampf(float(_wave_number - 2) * 4.0, 0.0, 25.0)
+
+func _get_base_rare_chance() -> float:
+	return clampf(float(_wave_number - 5) * 2.0, 0.0, 12.0)
+
+func _get_monster_rarity_multiplier() -> float:
+	if not is_instance_valid(spawn_focus):
+		return 1.0
+	var stats := spawn_focus.get_node_or_null("StatComponent") as StatComponent
+	if not is_instance_valid(stats):
+		return 1.0
+	return maxf(stats.get_stat(StatIds.MONSTER_RARITY_MULTIPLIER), 0.0)
+
+func _get_effective_monster_rarity_multiplier() -> float:
+	return clampf(
+		_get_monster_rarity_multiplier(),
+		0.0,
+		MONSTER_RARITY_MAX_EFFECTIVE_MULTIPLIER
+	)
+
+func _roll_rare_modifier_names() -> Array[String]:
+	var wanted_count := (
+		forced_rare_modifier_count
+		if forced_rare_modifier_count >= 0
+		else _roll_rare_modifier_count()
+	)
+	if wanted_count <= 0:
+		return []
+	var available_names := (
+		_get_forced_rare_modifier_names()
+		if not forced_rare_modifier_ids.is_empty()
+		else _get_all_rare_modifier_names()
+	)
+	available_names.shuffle()
+	return available_names.slice(0, mini(wanted_count, available_names.size()))
+
+func _roll_rare_modifier_count() -> int:
+	if _wave_number >= 22:
+		return 2
+	if _wave_number >= 17:
+		return 2 if _random.randf() < 0.4 else 1
+	if _wave_number >= 13:
+		return 1
+	if _wave_number >= 9:
+		return 1 if _random.randf() < 0.6 else 0
+	if _wave_number >= 6:
+		return 1 if _random.randf() < 0.3 else 0
+	return 0
+
+func _get_all_rare_modifier_names() -> Array[String]:
+	return [
+		"Armoured",
+		"Elusive",
+		"Resistant",
+		"Brutal",
+		"Arcane Barrier",
+		"Swift"
+	]
+
+func _get_forced_rare_modifier_names() -> Array[String]:
+	var result: Array[String] = []
+	for modifier_id in forced_rare_modifier_ids:
+		var modifier_name := _get_rare_modifier_name(modifier_id)
+		if modifier_name != "" and not result.has(modifier_name):
+			result.append(modifier_name)
+	return result
+
+func _get_rare_modifier_id(modifier_name: String) -> StringName:
+	match modifier_name:
+		"Armoured":
+			return &"armoured"
+		"Elusive":
+			return &"elusive"
+		"Resistant":
+			return &"resistant"
+		"Brutal":
+			return &"brutal"
+		"Arcane Barrier":
+			return &"arcane_barrier"
+		"Swift":
+			return &"swift"
+	return &""
+
+func _get_rare_modifier_name(modifier_id: StringName) -> String:
+	match modifier_id:
+		&"armoured":
+			return "Armoured"
+		&"elusive":
+			return "Elusive"
+		&"resistant":
+			return "Resistant"
+		&"brutal":
+			return "Brutal"
+		&"arcane_barrier":
+			return "Arcane Barrier"
+		&"swift":
+			return "Swift"
+	return ""
+
+func _make_uncommon_modifier_set() -> ModifierSet:
+	return _make_modifier_set([
+		_make_modifier(StatIds.MAXIMUM_HEALTH, StatModifier.Operation.INCREASED, 25.0),
+		_make_modifier(StatIds.ARMOUR, StatModifier.Operation.FLAT, UNCOMMON_RARITY_ARMOUR),
+		_make_modifier(StatIds.EVASION, StatModifier.Operation.FLAT, UNCOMMON_RARITY_EVASION),
+		_make_modifier(StatIds.PHYSICAL_RESISTANCE, StatModifier.Operation.FLAT, RARITY_RESISTANCE_BONUS),
+		_make_modifier(StatIds.ELEMENTAL_RESISTANCE, StatModifier.Operation.FLAT, RARITY_RESISTANCE_BONUS)
+	])
+
+func _make_rare_base_modifier_set() -> ModifierSet:
+	return _make_modifier_set([
+		_make_modifier(StatIds.MAXIMUM_HEALTH, StatModifier.Operation.INCREASED, 50.0),
+		_make_modifier(StatIds.ARMOUR, StatModifier.Operation.FLAT, RARE_RARITY_ARMOUR),
+		_make_modifier(StatIds.EVASION, StatModifier.Operation.FLAT, RARE_RARITY_EVASION),
+		_make_modifier(StatIds.PHYSICAL_RESISTANCE, StatModifier.Operation.FLAT, RARITY_RESISTANCE_BONUS),
+		_make_modifier(StatIds.ELEMENTAL_RESISTANCE, StatModifier.Operation.FLAT, RARITY_RESISTANCE_BONUS)
+	])
+
+func _make_rare_modifier_set(modifier_id: StringName) -> ModifierSet:
+	match modifier_id:
+		&"armoured":
+			return _make_modifier_set([
+				_make_modifier(StatIds.ARMOUR, StatModifier.Operation.FLAT, 150.0)
+			])
+		&"elusive":
+			return _make_modifier_set([
+				_make_modifier(StatIds.EVASION, StatModifier.Operation.FLAT, 150.0)
+			])
+		&"resistant":
+			return _make_modifier_set([
+				_make_modifier(StatIds.PHYSICAL_RESISTANCE, StatModifier.Operation.FLAT, 15.0),
+				_make_modifier(StatIds.ELEMENTAL_RESISTANCE, StatModifier.Operation.FLAT, 15.0)
+			])
+		&"brutal":
+			return _make_modifier_set([
+				_make_modifier(StatIds.MELEE_DAMAGE, StatModifier.Operation.INCREASED, 25.0)
+			])
+		&"arcane_barrier":
+			return _make_modifier_set([
+				_make_modifier(StatIds.MAXIMUM_ARCANE_SHIELD, StatModifier.Operation.FLAT, 40.0)
+			])
+		&"swift":
+			return _make_modifier_set([
+				_make_modifier(StatIds.MOVEMENT_SPEED, StatModifier.Operation.MORE, 15.0)
+			])
+	return ModifierSet.new()
+
+func _make_modifier_set(modifiers: Array[StatModifier]) -> ModifierSet:
+	var modifier_set := ModifierSet.new()
+	modifier_set.modifiers = modifiers
+	return modifier_set
+
+func _add_natural_wave_defense_source(wave_number: int) -> void:
+	var rating_step := floori(float(wave_number) / float(NATURAL_DEFENSE_RATING_STEP_WAVES))
+	var resistance_step := floori(float(wave_number) / float(NATURAL_RESISTANCE_STEP_WAVES))
+	var rating_bonus := float(rating_step) * NATURAL_DEFENSE_RATING_PER_STEP
+	var resistance_bonus := float(resistance_step) * NATURAL_RESISTANCE_PER_STEP
+	var modifiers: Array[StatModifier] = []
+	if rating_bonus > 0.0:
+		modifiers.append(_make_modifier(StatIds.ARMOUR, StatModifier.Operation.FLAT, rating_bonus))
+		modifiers.append(_make_modifier(StatIds.EVASION, StatModifier.Operation.FLAT, rating_bonus))
+	if resistance_bonus > 0.0:
+		modifiers.append(_make_modifier(
+			StatIds.PHYSICAL_RESISTANCE,
+			StatModifier.Operation.FLAT,
+			resistance_bonus
+		))
+		modifiers.append(_make_modifier(
+			StatIds.ELEMENTAL_RESISTANCE,
+			StatModifier.Operation.FLAT,
+			resistance_bonus
+		))
+	if modifiers.is_empty():
+		return
+	_wave_modifier_sources[StringName("wave:%d:natural_defenses" % wave_number)] = (
+		_make_modifier_set(modifiers)
+	)
+
+func _make_modifier(
+	stat_id: StringName,
+	operation: StatModifier.Operation,
+	value: float
+) -> StatModifier:
+	var modifier := StatModifier.new()
+	modifier.stat_id = stat_id
+	modifier.operation = operation
+	modifier.value = value
+	modifier.target_domain = &"monster"
+	modifier.scope = StatModifier.Scope.GLOBAL
+	return modifier
 
 func _choose_spawn_position(additional_margin: float = 0.0) -> Vector2:
 	var center := Vector2.ZERO

@@ -9,6 +9,7 @@
 [resource]
 script = ExtResource("1_script")
 duration = 25.0
+spawn_budget = 16
 enemy_pool = Array[ExtResource("4_entry")]([ExtResource("2_wanderer"), ExtResource("3_chaser")])
-maximum_pack_size = 3
+maximum_pack_size = 2
 pack_spread = 60.0

@@ -34,6 +34,7 @@ enum RelicSlot {
 @export_range(0.0, 1.0, 0.05) var sell_value_multiplier: float = 0.5
 @export var sellable: bool = true
 @export var modifier_set: ModifierSet
+@export var damage_conversions: Array[DamageConversion] = []
 
 func get_shop_price(wave_number: int) -> int:
 	return maxi(1, cost + maxi(wave_number - 1, 0) * 2)
@@ -156,14 +157,15 @@ static func _is_percentage_point_stat(stat_id: StringName) -> bool:
 	return stat_id in [
 		StatIds.DAMAGE,
 		StatIds.PHYSICAL_RESISTANCE,
-		StatIds.LIGHTNING_RESISTANCE,
-		StatIds.COLD_RESISTANCE,
-		StatIds.FIRE_RESISTANCE,
+		StatIds.ELEMENTAL_RESISTANCE,
 		StatIds.MAXIMUM_PHYSICAL_RESISTANCE,
-		StatIds.MAXIMUM_LIGHTNING_RESISTANCE,
-		StatIds.MAXIMUM_COLD_RESISTANCE,
-		StatIds.MAXIMUM_FIRE_RESISTANCE,
+		StatIds.MAXIMUM_ELEMENTAL_RESISTANCE,
+		StatIds.PHYSICAL_RESISTANCE_PENETRATION,
+		StatIds.ELEMENTAL_RESISTANCE_PENETRATION,
 		StatIds.TOUGHNESS,
+		StatIds.DEFLECTION_DAMAGE_REDUCTION,
+		StatIds.ARCANE_SHIELD_RECHARGE_START_SPEED,
+		StatIds.ARCANE_SHIELD_RECHARGE_RATE,
 		StatIds.SHOP_FREE_REROLL_CHANCE
 	]
 
@@ -196,34 +198,54 @@ static func _get_stat_display_name(stat_id: StringName) -> String:
 			return "damage"
 		StatIds.PHYSICAL_DAMAGE:
 			return "physical damage"
-		StatIds.LIGHTNING_DAMAGE:
-			return "lightning damage"
-		StatIds.COLD_DAMAGE:
-			return "cold damage"
-		StatIds.FIRE_DAMAGE:
-			return "fire damage"
+		StatIds.ELEMENTAL_DAMAGE:
+			return "elemental damage"
 		StatIds.PROJECTILE_SPEED:
 			return "projectile speed"
+		StatIds.PROJECTILE_PIERCE:
+			return "projectile pierce"
+		StatIds.PROJECTILE_FORK:
+			return "projectile fork"
+		StatIds.PROJECTILE_CHAIN:
+			return "projectile chain"
+		StatIds.PROJECTILE_CHAIN_RADIUS:
+			return "projectile chain radius"
+		StatIds.AREA_OF_EFFECT:
+			return "area of effect"
+		StatIds.COOLDOWN_DURATION:
+			return "cooldown duration"
 		StatIds.MELEE_DAMAGE:
 			return "melee damage"
 		StatIds.PHYSICAL_RESISTANCE:
 			return "physical resistance"
-		StatIds.LIGHTNING_RESISTANCE:
-			return "lightning resistance"
-		StatIds.COLD_RESISTANCE:
-			return "cold resistance"
-		StatIds.FIRE_RESISTANCE:
-			return "fire resistance"
+		StatIds.ELEMENTAL_RESISTANCE:
+			return "elemental resistance"
 		StatIds.MAXIMUM_PHYSICAL_RESISTANCE:
 			return "maximum physical resistance"
-		StatIds.MAXIMUM_LIGHTNING_RESISTANCE:
-			return "maximum lightning resistance"
-		StatIds.MAXIMUM_COLD_RESISTANCE:
-			return "maximum cold resistance"
-		StatIds.MAXIMUM_FIRE_RESISTANCE:
-			return "maximum fire resistance"
+		StatIds.MAXIMUM_ELEMENTAL_RESISTANCE:
+			return "maximum elemental resistance"
+		StatIds.ACCURACY:
+			return "accuracy"
+		StatIds.PHYSICAL_RESISTANCE_PENETRATION:
+			return "physical resistance penetration"
+		StatIds.ELEMENTAL_RESISTANCE_PENETRATION:
+			return "elemental resistance penetration"
+		StatIds.ARMOUR_PENETRATION:
+			return "armour penetration"
 		StatIds.TOUGHNESS:
 			return "toughness"
+		StatIds.ARMOUR:
+			return "armour"
+		StatIds.EVASION:
+			return "evasion"
+		StatIds.DEFLECTION_DAMAGE_REDUCTION:
+			return "deflection damage reduction"
+		StatIds.MAXIMUM_ARCANE_SHIELD:
+			return "maximum arcane shield"
+		StatIds.ARCANE_SHIELD_RECHARGE_START_SPEED:
+			return "arcane shield recharge start speed"
+		StatIds.ARCANE_SHIELD_RECHARGE_RATE:
+			return "arcane shield recharge rate"
 		StatIds.MONSTER_EFFECTIVENESS:
 			return "monster effectiveness"
 		StatIds.EXPERIENCE_GRANTED_MULTIPLIER:

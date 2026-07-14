@@ -9,6 +9,8 @@
 [node name="OPTestPistol" type="Node2D"]
 script = ExtResource("1_script")
 projectile_scene = ExtResource("2_projectile")
+allowed_base_damage_types = Array[StringName]([&"physical"])
+added_damage_multiplier = 1.5
 pellet_count = 6
 spread_degrees = 28.0
 

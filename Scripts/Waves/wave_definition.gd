@@ -7,9 +7,9 @@ extends Resource
 @export var enemy_pool: Array[EnemySpawnEntry] = []
 @export var context_tags: Array[StringName] = []
 @export var monster_modifier_sets: Array[ModifierSet] = []
+@export_range(0.0, 1000.0, 0.01, "or_greater") var monster_base_health_multiplier: float = 1.0
 @export_range(0.0, 3600.0, 0.5) var spawn_cutoff_before_end: float = 5.0
 @export_range(1.0, 120.0, 0.5, "or_greater") var spawn_window_duration: float = 5.0
-@export_range(0.0, 1.0, 0.01) var elite_budget_share: float = 0.0
 
 @export_category("Rift")
 @export_range(0, 20, 1) var rift_portal_count: int = 0

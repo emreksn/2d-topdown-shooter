@@ -41,6 +41,10 @@ func _init() -> void:
 		&"test:bountiful",
 		BOUNTIFUL.inherent_modifier_set
 	)
+	var monster_health := HealthComponent.new()
+	monster_health.name = "HealthComponent"
+	monster_health.stat_component = monster_stats
+	monster.add_child(monster_health)
 
 	_assert_near(
 		monster_stats.get_stat(StatIds.ITEM_QUANTITY_MULTIPLIER),
@@ -56,7 +60,7 @@ func _init() -> void:
 	)
 	_assert_near(
 		monster_stats.get_stat(StatIds.MAXIMUM_HEALTH),
-		125.0,
+		112.5,
 		"Rift maximum health modifier should apply.",
 		failures
 	)
@@ -71,16 +75,17 @@ func _init() -> void:
 	rewards.monster_stats = monster_stats
 	rewards.item_drop_pool = [RUNNING_SHOES]
 	rewards.item_drop_chance_per_spawn_cost = 100.0
-	rewards.relic_drop_chance_per_spawn_cost = 0.0
 	rewards.maximum_item_drops_per_monster = 5
 	rewards.grant_item_drops_directly = true
+	rewards.item_rarity_manager = ItemRarityManager.new()
 	monster.add_child(rewards)
 	rewards.configure(1, 1.0, 1)
 	rewards._roll_item_drops(player, player_stats)
 
-	if inventory.items.size() != 1:
+	if inventory.items.size() < 1 or inventory.items.size() > 2:
 		failures.append(
-			"Expected exactly one guaranteed item drop, got %d." % inventory.items.size()
+			"Expected one guaranteed item drop with a possible second drop, got %d."
+			% inventory.items.size()
 		)
 	elif inventory.items[0] != RUNNING_SHOES:
 		failures.append("Expected guaranteed item drop to be Running Shoes.")

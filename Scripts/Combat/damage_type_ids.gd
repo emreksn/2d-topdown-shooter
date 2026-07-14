@@ -2,60 +2,48 @@ class_name DamageTypeIds
 extends RefCounted
 
 const PHYSICAL := &"physical"
-const LIGHTNING := &"lightning"
-const COLD := &"cold"
-const FIRE := &"fire"
+const ELEMENTAL := &"elemental"
 
 const ORDER: Array[StringName] = [
 	PHYSICAL,
-	LIGHTNING,
-	COLD,
-	FIRE
+	ELEMENTAL
 ]
 
 static func get_index(damage_type: StringName) -> int:
 	return ORDER.find(damage_type)
 
-static func is_forward_conversion(
+static func is_supported(damage_type: StringName) -> bool:
+	return ORDER.has(damage_type)
+
+static func is_valid_conversion(
 	source_type: StringName,
-	destination_type: StringName
+	destination_type: StringName,
+	allow_same_type: bool = false
 ) -> bool:
-	var source_index := get_index(source_type)
-	var destination_index := get_index(destination_type)
-	return source_index >= 0 and destination_index > source_index
+	if not is_supported(source_type) or not is_supported(destination_type):
+		return false
+	return source_type != destination_type or allow_same_type
 
 static func get_damage_stat_id(damage_type: StringName) -> StringName:
 	match damage_type:
 		PHYSICAL:
 			return StatIds.PHYSICAL_DAMAGE
-		LIGHTNING:
-			return StatIds.LIGHTNING_DAMAGE
-		COLD:
-			return StatIds.COLD_DAMAGE
-		FIRE:
-			return StatIds.FIRE_DAMAGE
+		ELEMENTAL:
+			return StatIds.ELEMENTAL_DAMAGE
 	return &""
 
 static func get_resistance_stat_id(damage_type: StringName) -> StringName:
 	match damage_type:
 		PHYSICAL:
 			return StatIds.PHYSICAL_RESISTANCE
-		LIGHTNING:
-			return StatIds.LIGHTNING_RESISTANCE
-		COLD:
-			return StatIds.COLD_RESISTANCE
-		FIRE:
-			return StatIds.FIRE_RESISTANCE
+		ELEMENTAL:
+			return StatIds.ELEMENTAL_RESISTANCE
 	return &""
 
 static func get_maximum_resistance_stat_id(damage_type: StringName) -> StringName:
 	match damage_type:
 		PHYSICAL:
 			return StatIds.MAXIMUM_PHYSICAL_RESISTANCE
-		LIGHTNING:
-			return StatIds.MAXIMUM_LIGHTNING_RESISTANCE
-		COLD:
-			return StatIds.MAXIMUM_COLD_RESISTANCE
-		FIRE:
-			return StatIds.MAXIMUM_FIRE_RESISTANCE
+		ELEMENTAL:
+			return StatIds.MAXIMUM_ELEMENTAL_RESISTANCE
 	return &""

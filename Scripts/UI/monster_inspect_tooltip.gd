@@ -6,11 +6,12 @@ const INSPECTED_STATS: Array[StringName] = [
 	StatIds.MOVEMENT_SPEED,
 	StatIds.MELEE_DAMAGE,
 	StatIds.TOUGHNESS,
+	StatIds.ARMOUR,
+	StatIds.EVASION,
+	StatIds.MAXIMUM_ARCANE_SHIELD,
 	StatIds.MONSTER_EFFECTIVENESS,
 	StatIds.PHYSICAL_RESISTANCE,
-	StatIds.FIRE_RESISTANCE,
-	StatIds.LIGHTNING_RESISTANCE,
-	StatIds.COLD_RESISTANCE,
+	StatIds.ELEMENTAL_RESISTANCE,
 	StatIds.EXPERIENCE_GRANTED_MULTIPLIER,
 	StatIds.GOLD_GRANTED_MULTIPLIER,
 	StatIds.ITEM_QUANTITY_MULTIPLIER,
@@ -89,7 +90,22 @@ func _build_tooltip_text(enemy: Enemy) -> String:
 	var player_stats := _get_player_stats()
 
 	var lines: Array[String] = []
-	lines.append("[b]%s[/b]" % enemy.get_inspection_name())
+	lines.append(
+		"[color=%s][b]%s[/b][/color]"
+		% [
+			_get_monster_rarity_color(enemy).to_html(false),
+			enemy.get_inspection_name()
+		]
+	)
+	lines.append(
+		"[color=#8ecfe0]Rarity:[/color] %s"
+		% enemy.monster_rarity_display_name
+	)
+	if not enemy.rare_modifier_names.is_empty():
+		lines.append(
+			"[color=#8ecfe0]Modifiers:[/color] %s"
+			% ", ".join(enemy.rare_modifier_names)
+		)
 	lines.append("[color=#8ecfe0]Tags:[/color] %s" % _format_tags(enemy.spawn_tags))
 	if is_instance_valid(health):
 		lines.append(
@@ -99,6 +115,14 @@ func _build_tooltip_text(enemy: Enemy) -> String:
 				_format_number(health.maximum_health)
 			]
 		)
+		if health.maximum_arcane_shield > 0.0:
+			lines.append(
+				"[color=#cfa6ff]Arcane Shield:[/color] %s / %s"
+				% [
+					_format_number(health.current_arcane_shield),
+					_format_number(health.maximum_arcane_shield)
+				]
+			)
 	if is_instance_valid(stats):
 		var changed_stat_lines := _get_changed_stat_lines(stats, enemy.spawn_tags)
 		if not changed_stat_lines.is_empty():
@@ -195,6 +219,14 @@ func _format_rarity_chances(chances: Dictionary) -> String:
 			_format_number(float(chances[rarity]))
 		])
 	return ", ".join(parts)
+
+func _get_monster_rarity_color(enemy: Enemy) -> Color:
+	match enemy.monster_rarity:
+		Enemy.MonsterRarity.UNCOMMON:
+			return UiPresentation.get_rarity_color(ItemDefinition.Rarity.UNCOMMON)
+		Enemy.MonsterRarity.RARE:
+			return UiPresentation.get_rarity_color(ItemDefinition.Rarity.RARE)
+	return UiPresentation.get_rarity_color(ItemDefinition.Rarity.COMMON)
 
 func _format_tags(tags: Array[StringName]) -> String:
 	if tags.is_empty():

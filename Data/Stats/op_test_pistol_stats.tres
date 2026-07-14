@@ -8,11 +8,6 @@ script = ExtResource("2_value")
 stat_id = &"physical_damage"
 value = 85.0
 
-[sub_resource type="Resource" id="FireDamage"]
-script = ExtResource("2_value")
-stat_id = &"fire_damage"
-value = 25.0
-
 [sub_resource type="Resource" id="AttackRate"]
 script = ExtResource("2_value")
 stat_id = &"attack_rate"
@@ -30,4 +25,4 @@ value = 650.0
 
 [resource]
 script = ExtResource("1_profile")
-values = Array[ExtResource("2_value")]([SubResource("Damage"), SubResource("FireDamage"), SubResource("AttackRate"), SubResource("Targeting"), SubResource("ProjectileSpeed")])
+values = Array[ExtResource("2_value")]([SubResource("Damage"), SubResource("AttackRate"), SubResource("Targeting"), SubResource("ProjectileSpeed")])

@@ -34,7 +34,7 @@ Current variant identities:
 - Blessed: experience-focused.
 - Bountiful: item quantity and item rarity-focused.
 - Infested: more normal monster spawns.
-- Apex: planned for elite-focused content, not currently in the offer pool.
+- Apex: planned for rare-monster-focused content, not currently in the offer pool.
 
 ## Extra modifiers
 
@@ -42,18 +42,18 @@ Extra modifiers are separate rolled modifiers that can be pure upside, risk-rewa
 
 Current Rift extra modifier pool:
 
-- Golden Wake: 20% increased gold granted by Rift monsters.
-- Bright Wake: 20% increased experience granted by Rift monsters.
-- Lucky Wake: 20% increased monster item rarity for Rift monsters.
+- Golden Wake: 20% more gold granted by Rift monsters.
+- Bright Wake: 20% more experience granted by Rift monsters.
+- Lucky Wake: 20% more monster item rarity for Rift monsters.
 - Crowded Wake: +1 Rift monster per portal.
-- Hardened Cache: 20% increased Rift monster maximum health; 30% increased gold granted by Rift monsters.
-- Painful Lessons: 15% increased Rift monster melee damage; 30% increased experience granted by Rift monsters.
-- Frantic Pack: +2 Rift monsters per portal; 10% increased Rift monster movement speed.
-- Gilded Lessons: 25% increased gold granted and 25% increased experience granted by Rift monsters.
-- Heavy Hoard: 30% increased item quantity for Rift monsters; 15% increased Rift monster maximum health.
-- Violent Abundance: 25% increased monster item rarity for Rift monsters; 15% increased Rift monster melee damage.
-- Crowded Treasury: +1 Rift monster per portal; 15% increased gold granted by Rift monsters.
-- Pressed Offering: +1 Rift portal; 20% increased Rift monster maximum health; 20% increased experience granted by Rift monsters.
+- Hardened Cache: 20% more Rift monster maximum health; 30% more gold granted by Rift monsters.
+- Painful Lessons: 15% more Rift monster melee damage; 30% more experience granted by Rift monsters.
+- Frantic Pack: +2 Rift monsters per portal; 10% more Rift monster movement speed.
+- Gilded Lessons: 25% more gold granted and 25% more experience granted by Rift monsters.
+- Heavy Hoard: 30% more item quantity for Rift monsters; 15% more Rift monster maximum health.
+- Violent Abundance: 25% more monster item rarity for Rift monsters; 15% more Rift monster melee damage.
+- Crowded Treasury: +1 Rift monster per portal; 15% more gold granted by Rift monsters.
+- Pressed Offering: +1 Rift portal; 20% more Rift monster maximum health; 20% more experience granted by Rift monsters.
 
 ## Content types
 

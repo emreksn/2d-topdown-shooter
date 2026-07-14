@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="FrostNovaSkill" format=3]
+
+[ext_resource type="Script" path="res://Scripts/ActiveSkills/frost_nova_skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"frost_nova"
+display_name = "Frost Nova"
+cooldown_duration = 8.0
+requires_weapon = true
+required_damage_types = Array[StringName]([&"elemental"])
+base_damage = 18.0
+elemental_damage_scaling = 0.5
+radius = 260.0
+slow_magnitude = 25.0
+slow_duration = 2.5

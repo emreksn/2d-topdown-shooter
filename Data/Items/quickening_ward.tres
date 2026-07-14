@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3]
+
+[ext_resource type="Script" uid="uid://d11nsmii062xg" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://buyyui2cjuh6k" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" uid="uid://dma8duyo44scc" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="RechargeStartSpeed"]
+script = ExtResource("3_modifier")
+stat_id = &"arcane_shield_recharge_start_speed"
+value = 50.0
+target_domain = &"player"
+
+[sub_resource type="Resource" id="Modifiers"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("RechargeStartSpeed")])
+
+[resource]
+script = ExtResource("1_item")
+id = &"quickening_ward"
+display_name = "Quickening Ward"
+description = "+50% to arcane shield recharge start speed"
+rarity = 2
+cost = 34
+modifier_set = SubResource("Modifiers")

@@ -33,13 +33,13 @@ func _test_pistol_and_melee_damage() -> bool:
 
 	var enemy_health := enemy.get_node("HealthComponent") as HealthComponent
 	var player_health := player.get_node("HealthComponent") as HealthComponent
-	if not is_equal_approx(enemy_health.maximum_health, 100.0):
+	if not is_equal_approx(enemy_health.maximum_health, 90.0):
 		return _fail("Enemy maximum health baseline changed.")
 
 	await create_timer(1.5).timeout
-	if not is_equal_approx(enemy_health.current_health, 70.0):
+	if not is_equal_approx(enemy_health.current_health, 60.0):
 		return _fail(
-			"Common pistol expected 70 health, received %f."
+			"Common pistol expected 60 health, received %f."
 			% enemy_health.current_health
 		)
 
@@ -53,59 +53,81 @@ func _test_pistol_and_melee_damage() -> bool:
 	return true
 
 func _test_spawn_effectiveness_context() -> bool:
-	var game: Node = load("res://Scenes/Game/game.tscn").instantiate()
-	var wave_director := game.get_node("Systems/WaveDirector") as WaveDirector
-	var registry := game.get_node("Systems/RuntimeModifierRegistry") as RuntimeModifierRegistry
+	var world := Node2D.new()
+	root.add_child(world)
+	current_scene = world
+
+	var enemies := Node2D.new()
+	world.add_child(enemies)
+	var registry := RuntimeModifierRegistry.new()
+	world.add_child(registry)
+	var spawn_director := SpawnDirector.new()
+	spawn_director.enemy_container = enemies
+	spawn_director.runtime_modifier_registry = registry
+	world.add_child(spawn_director)
 
 	var effectiveness_modifier := StatModifier.new()
 	effectiveness_modifier.stat_id = StatIds.MONSTER_EFFECTIVENESS
 	effectiveness_modifier.operation = StatModifier.Operation.FLAT
 	effectiveness_modifier.value = 20.0
 	effectiveness_modifier.target_domain = &"monster"
+	var health_modifier := StatModifier.new()
+	health_modifier.stat_id = StatIds.MAXIMUM_HEALTH
+	health_modifier.operation = StatModifier.Operation.INCREASED
+	health_modifier.value = 25.0
+	health_modifier.target_domain = &"monster"
+	health_modifier.required_all_tags = [&"rift"]
 	var modifier_set := ModifierSet.new()
-	modifier_set.modifiers = [effectiveness_modifier]
+	modifier_set.modifiers = [effectiveness_modifier, health_modifier]
 	registry.add_modifier_source(&"test:rift", modifier_set)
 
+	var entry := load(
+		"res://Data/Waves/Enemies/wandering_enemy_entry.tres"
+	) as EnemySpawnEntry
 	var test_wave := WaveDefinition.new()
 	test_wave.duration = 1.0
-	test_wave.spawn_budget = 1
+	test_wave.spawn_budget = entry.cost
+	test_wave.spawn_cutoff_before_end = 0.0
 	test_wave.spawn_warning_duration = 0.01
-	test_wave.enemy_pool = [wave_director.wave_definitions[0].enemy_pool[0]]
+	test_wave.enemy_pool = [entry]
 	test_wave.minimum_pack_size = 1
 	test_wave.maximum_pack_size = 1
 	test_wave.context_tags = [&"rift"]
-	wave_director.wave_definitions = [test_wave]
-	wave_director.preparation_duration = 0.01
-	wave_director.repeat_last_definition = false
 
-	root.add_child(game)
-	current_scene = game
-	await create_timer(0.3).timeout
+	spawn_director.begin_wave(test_wave, 1)
+	spawn_director.spawn_bonus_enemy(entry, Vector2.ZERO)
+	await process_frame
 
-	var enemies: Array[Node] = game.get_node("World/Enemies").get_children()
-	if enemies.size() != 1:
-		var spawn_director := game.get_node("Systems/SpawnDirector") as SpawnDirector
+	var spawned_enemies: Array[Node] = enemies.get_children()
+	if spawned_enemies.size() != 1:
 		return _fail(
-			"Context test expected one enemy, received %d (active=%d, wave_state=%d, container=%s)."
+			"Context test expected one enemy, received %d (active=%d, container=%s)."
 			% [
-				enemies.size(),
+				spawned_enemies.size(),
 				spawn_director.active_enemy_count,
-				wave_director.state,
 				spawn_director.enemy_container.get_path()
 				if is_instance_valid(spawn_director.enemy_container)
 				else "null"
 			]
 		)
-	var stats := enemies[0].get_node("StatComponent") as StatComponent
+	var stats := spawned_enemies[0].get_node("StatComponent") as StatComponent
+	var health := spawned_enemies[0].get_node("HealthComponent") as HealthComponent
 	if not is_equal_approx(
 		stats.get_stat(StatIds.MONSTER_EFFECTIVENESS),
 		20.0
 	):
 		return _fail("Runtime Effectiveness source was not applied before spawn.")
+	if not is_equal_approx(health.maximum_health, 112.5):
+		return _fail("Runtime maximum health source was not applied before spawn.")
+	if not is_equal_approx(health.current_health, 112.5):
+		return _fail("Spawned enemy was not filled to its modified maximum health.")
 
-	var scaling := enemies[0].get_node("MonsterScalingComponent") as MonsterScalingComponent
-	if not is_equal_approx(scaling.get_effectiveness_toughness_factor(), 1.2):
-		return _fail("Spawned enemy Effectiveness Toughness factor is incorrect.")
+	var scaling := (
+		spawned_enemies[0].get_node("MonsterScalingComponent")
+		as MonsterScalingComponent
+	)
+	if not is_equal_approx(scaling.get_combined_toughness(), 20.0):
+		return _fail("Spawned enemy combined toughness is incorrect.")
 	registry.remove_modifier_source(&"test:rift")
 	await process_frame
 	if not is_equal_approx(
@@ -113,8 +135,10 @@ func _test_spawn_effectiveness_context() -> bool:
 		0.0
 	):
 		return _fail("Live enemy did not remove a runtime Effectiveness source.")
+	if not is_equal_approx(health.maximum_health, 90.0):
+		return _fail("Live enemy did not remove a runtime maximum health source.")
 
-	game.queue_free()
+	world.queue_free()
 	await process_frame
 	return true
 
@@ -137,6 +161,10 @@ func _test_rift_bonus_spawning() -> bool:
 	definition.enemy_pool = [entry]
 	definition.minimum_pack_size = 1
 	definition.maximum_pack_size = 1
+	var bountiful := load(
+		"res://Data/Content/Variants/bountiful.tres"
+	) as ContentVariantDefinition
+	definition.monster_modifier_sets = [bountiful.inherent_modifier_set]
 	spawn_director.begin_wave(definition, 1)
 	spawn_director.stop_spawning()
 	var budget_before := spawn_director._remaining_budget
@@ -162,6 +190,11 @@ func _test_rift_bonus_spawning() -> bool:
 	for enemy in enemies.get_children():
 		if not (enemy as Enemy).spawn_tags.has(&"rift"):
 			return _fail("Rift bonus monster did not receive the rift tag.")
+		var health := enemy.get_node("HealthComponent") as HealthComponent
+		if not is_equal_approx(health.maximum_health, 112.5):
+			return _fail("Rift bonus monster did not receive modified maximum health.")
+		if not is_equal_approx(health.current_health, 112.5):
+			return _fail("Rift bonus monster did not spawn at modified current health.")
 
 	world.queue_free()
 	await process_frame
@@ -222,14 +255,19 @@ func _test_shop_inventory_and_rarity() -> bool:
 	var compass := load("res://Data/Items/rift_compass.tres") as ItemDefinition
 
 	progression.add_gold(200)
+	var wave_director := WaveDirector.new()
+	wave_director.state = WaveDirector.State.SHOP
 	var shop := ShopDirector.new()
+	shop.wave_director = wave_director
 	shop.progression = progression
 	shop.inventory = inventory
 	shop.player_stats = stats
 	var offers: Array[ItemDefinition] = [shoes, locket, compass]
 	var prices: Array[int] = [10, 10, 10]
+	var locks: Array[bool] = [false, false, false]
 	shop.current_offers = offers
 	shop.current_prices = prices
+	shop.current_locks = locks
 
 	if not shop.buy_offer(0):
 		return _fail("Shop purchase failed with enough gold.")
@@ -237,11 +275,11 @@ func _test_shop_inventory_and_rarity() -> bool:
 		return _fail("Shop purchase did not spend gold.")
 	if not is_equal_approx(stats.get_stat(StatIds.MOVEMENT_SPEED), 108.0):
 		return _fail("Purchased inventory item did not apply its stat modifier.")
-	if not shop.buy_offer(0):
+	if not shop.buy_offer(1):
 		return _fail("Shop did not equip a purchased Survival Relic.")
 	if inventory.get_active_relic(ItemDefinition.RelicSlot.SURVIVAL) != locket:
 		return _fail("Purchased Relic was not equipped into its slot.")
-	if not shop.buy_offer(0):
+	if not shop.buy_offer(2):
 		return _fail("Shop did not equip a purchased Wave Relic.")
 	if inventory.get_active_relic(ItemDefinition.RelicSlot.WAVE) != compass:
 		return _fail("Second Relic was not equipped into its own slot.")

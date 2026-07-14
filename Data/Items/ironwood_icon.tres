@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" path="res://Scripts/Combat/damage_conversion.gd" id="2_conversion"]
+
+[sub_resource type="Resource" id="ElementalAsPhysical"]
+script = ExtResource("2_conversion")
+source_type = &"elemental"
+destination_type = &"physical"
+percentage = 25.0
+mode = 1
+
+[resource]
+script = ExtResource("1_item")
+id = &"ironwood_icon"
+display_name = "Ironwood Icon"
+description = "Gain 25% of Elemental damage as extra Physical damage"
+category = 1
+relic_slot = 1
+rarity = 3
+cost = 46
+damage_conversions = Array[ExtResource("2_conversion")]([SubResource("ElementalAsPhysical")])

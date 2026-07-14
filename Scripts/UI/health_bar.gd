@@ -13,6 +13,7 @@ func _ready() -> void:
 		return
 
 	health_component.health_changed.connect(_on_health_changed)
+	health_component.arcane_shield_changed.connect(_on_arcane_shield_changed)
 	_on_health_changed(
 		health_component.current_health,
 		health_component.maximum_health
@@ -31,7 +32,24 @@ func _find_health_component() -> HealthComponent:
 func _on_health_changed(current_health: float, maximum_health: float) -> void:
 	max_value = maximum_health
 	value = current_health
-	value_label.text = "%d / %d" % [
-		ceili(current_health),
-		ceili(maximum_health)
+	_update_value_label()
+
+func _on_arcane_shield_changed(
+	_current_arcane_shield: float,
+	_maximum_arcane_shield: float
+) -> void:
+	_update_value_label()
+
+func _update_value_label() -> void:
+	if not is_instance_valid(health_component):
+		return
+	var text := "%d / %d" % [
+		ceili(health_component.current_health),
+		ceili(health_component.maximum_health)
 	]
+	if health_component.maximum_arcane_shield > 0.0:
+		text += "  AS %d / %d" % [
+			ceili(health_component.current_arcane_shield),
+			ceili(health_component.maximum_arcane_shield)
+		]
+	value_label.text = text

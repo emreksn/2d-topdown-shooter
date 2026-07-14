@@ -17,6 +17,7 @@ var _vsync_check: CheckBox
 var _fps_cap_option: OptionButton
 var _ui_scale_option: OptionButton
 var _settings_snapshot: Dictionary = {}
+var _requested_game_scene_path := ""
 
 func _ready() -> void:
 	play_button.pressed.connect(_on_play_pressed)
@@ -24,6 +25,7 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit_pressed)
 	_build_loading_overlay()
 	_build_options_overlay()
+	_request_game_scene_load()
 	play_button.grab_focus()
 
 func _on_play_pressed() -> void:
@@ -37,15 +39,50 @@ func _on_play_pressed() -> void:
 	_loading_overlay.visible = true
 	await get_tree().process_frame
 
-	var err := get_tree().change_scene_to_file(game_scene_path)
-	if err != OK:
-		_is_loading = false
-		play_button.text = "PLAY"
-		play_button.disabled = false
-		options_button.disabled = false
-		quit_button.disabled = false
-		_loading_overlay.visible = false
+	var game_scene := await _get_game_scene()
+	if game_scene == null:
+		_restore_play_button_after_loading_failure()
 		_show_loading_error("Could not load game scene.")
+		return
+
+	var err := get_tree().change_scene_to_packed(game_scene)
+	if err != OK:
+		_restore_play_button_after_loading_failure()
+		_show_loading_error("Could not load game scene.")
+
+func _request_game_scene_load() -> void:
+	if game_scene_path.is_empty():
+		return
+	if _requested_game_scene_path == game_scene_path:
+		return
+	var err := ResourceLoader.load_threaded_request(game_scene_path)
+	if err == OK or err == ERR_BUSY:
+		_requested_game_scene_path = game_scene_path
+
+func _get_game_scene() -> PackedScene:
+	_request_game_scene_load()
+	if _requested_game_scene_path != game_scene_path:
+		return load(game_scene_path) as PackedScene
+
+	var progress: Array = []
+	while true:
+		match ResourceLoader.load_threaded_get_status(game_scene_path, progress):
+			ResourceLoader.THREAD_LOAD_LOADED:
+				return ResourceLoader.load_threaded_get(game_scene_path) as PackedScene
+			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				await get_tree().process_frame
+			_:
+				return load(game_scene_path) as PackedScene
+
+	return null
+
+func _restore_play_button_after_loading_failure() -> void:
+	_is_loading = false
+	play_button.text = "PLAY"
+	play_button.disabled = false
+	options_button.disabled = false
+	quit_button.disabled = false
+	_loading_overlay.visible = false
 
 func _on_options_pressed() -> void:
 	_settings_snapshot = GameSettings.get_snapshot()

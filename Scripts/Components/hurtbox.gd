@@ -51,22 +51,23 @@ func receive_damage(packet: DamagePacket) -> float:
 		return 0.0
 
 	var result := DamageResolver.resolve_incoming(packet, stat_component)
+	if result.was_evaded:
+		damage_resolved.emit(result, 0.0, packet.source)
+		return 0.0
 	if result.total_damage <= 0.0:
 		return 0.0
-	var applied_damage := health_component.take_damage(
-		result.total_damage,
-		packet.source
-	)
-	if applied_damage <= 0.0:
+	var applied_damage := health_component.take_resolved_damage(result, packet.source)
+	if applied_damage <= 0.0 and result.arcane_shield_damage <= 0.0:
 		return 0.0
 
-	damage_received.emit(applied_damage, packet.source)
+	if applied_damage > 0.0:
+		damage_received.emit(applied_damage, packet.source)
 	damage_resolved.emit(result, applied_damage, packet.source)
 	if invulnerability_duration > 0.0 and not health_component.is_dead:
 		_invulnerability_remaining = invulnerability_duration
 		invulnerability_started.emit(invulnerability_duration)
 
-	return applied_damage
+	return applied_damage + result.arcane_shield_damage
 
 func is_invulnerable() -> bool:
 	return invulnerable or _invulnerability_remaining > 0.0

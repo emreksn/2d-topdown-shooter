@@ -15,13 +15,7 @@ func _init(
 	ancestry_types = initial_ancestry.duplicate()
 
 func converted_copy(new_type: StringName, new_amount: float) -> DamageSlice:
-	var new_ancestry := ancestry_types.duplicate()
-	if not new_ancestry.has(current_type):
-		new_ancestry.append(current_type)
-	return DamageSlice.new(new_amount, new_type, new_ancestry)
+	return DamageSlice.new(new_amount, new_type)
 
 func get_applicable_types() -> Array[StringName]:
-	var result := ancestry_types.duplicate()
-	if not result.has(current_type):
-		result.append(current_type)
-	return result
+	return [current_type]

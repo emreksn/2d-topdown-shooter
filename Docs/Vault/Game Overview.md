@@ -22,6 +22,7 @@ The long-term design combines an accessible survival-action core with build-focu
 - Shop phase between waves with [[Items]], inventory access, and [[Relics]].
 - Rarity-scaled shop weapons and generated weapon affixes.
 - Optional [[Rift]] Content offers between waves.
+- Player death gives feedback and returns to the main menu.
 
 ## Planned progression pillars
 

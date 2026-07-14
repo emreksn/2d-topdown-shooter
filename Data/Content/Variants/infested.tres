@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Gold"]
 script = ExtResource("3_modifier")
 stat_id = &"gold_granted_multiplier"
-operation = 1
+operation = 2
 value = -20.0
 target_domain = &"monster"
 required_all_tags = Array[StringName]([&"rift"])
@@ -15,7 +15,7 @@ required_all_tags = Array[StringName]([&"rift"])
 [sub_resource type="Resource" id="Experience"]
 script = ExtResource("3_modifier")
 stat_id = &"experience_granted_multiplier"
-operation = 1
+operation = 2
 value = -20.0
 target_domain = &"monster"
 required_all_tags = Array[StringName]([&"rift"])

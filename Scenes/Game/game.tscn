@@ -54,9 +54,7 @@
 [ext_resource type="Resource" path="res://Data/Items/rift_compass.tres" id="24_compass"]
 [ext_resource type="Resource" path="res://Data/Items/leather_padding.tres" id="25_leather_padding"]
 [ext_resource type="Resource" path="res://Data/Items/iron_nail.tres" id="26_iron_nail"]
-[ext_resource type="Resource" path="res://Data/Items/ember_shard.tres" id="27_ember_shard"]
-[ext_resource type="Resource" path="res://Data/Items/copper_coil.tres" id="28_copper_coil"]
-[ext_resource type="Resource" path="res://Data/Items/frost_chip.tres" id="29_frost_chip"]
+[ext_resource type="Resource" path="res://Data/Items/elemental_shard.tres" id="27_elemental_shard"]
 [ext_resource type="Resource" path="res://Data/Items/practice_manual.tres" id="30_practice_manual"]
 [ext_resource type="Resource" path="res://Data/Items/quick_fingers.tres" id="31_quick_fingers"]
 [ext_resource type="Resource" path="res://Data/Items/smooth_powder.tres" id="32_smooth_powder"]
@@ -77,6 +75,34 @@
 [ext_resource type="Resource" path="res://Data/Weapons/shotgun.tres" id="75_shotgun_weapon"]
 [ext_resource type="Resource" path="res://Data/Weapons/op_test_pistol.tres" id="76_op_test_pistol"]
 [ext_resource type="Script" path="res://Scripts/UI/monster_inspect_tooltip.gd" id="77_monster_tooltip"]
+[ext_resource type="Resource" path="res://Data/Items/iron_plates.tres" id="78_iron_plates"]
+[ext_resource type="Resource" path="res://Data/Items/silk_treads.tres" id="79_silk_treads"]
+[ext_resource type="Resource" path="res://Data/Items/ward_pebble.tres" id="80_ward_pebble"]
+[ext_resource type="Resource" path="res://Data/Items/tempered_plates.tres" id="81_tempered_plates"]
+[ext_resource type="Resource" path="res://Data/Items/ghostweave_thread.tres" id="82_ghostweave_thread"]
+[ext_resource type="Resource" path="res://Data/Items/ward_etching.tres" id="83_ward_etching"]
+[ext_resource type="Resource" path="res://Data/Items/ward_dynamo.tres" id="84_ward_dynamo"]
+[ext_resource type="Resource" path="res://Data/Items/quickening_ward.tres" id="85_quickening_ward"]
+[ext_resource type="Resource" path="res://Data/Weapons/wand.tres" id="86_wand_weapon"]
+[ext_resource type="Resource" path="res://Data/Weapons/pistol_slow.tres" id="87_pistol_slow"]
+[ext_resource type="Resource" path="res://Data/Weapons/pistol_fork.tres" id="88_pistol_fork"]
+[ext_resource type="Resource" path="res://Data/Weapons/pistol_chain.tres" id="89_pistol_chain"]
+[ext_resource type="Script" path="res://Scripts/UI/starter_skill_choice_ui.gd" id="90_starter_skill_ui"]
+[ext_resource type="Resource" path="res://Data/ActiveSkills/bulletstorm_volley.tres" id="91_bulletstorm_skill"]
+[ext_resource type="Resource" path="res://Data/ActiveSkills/dash.tres" id="92_dash_skill"]
+[ext_resource type="Resource" path="res://Data/ActiveSkills/frost_nova.tres" id="93_frost_nova_skill"]
+[ext_resource type="Resource" path="res://Data/Items/chain_reactor.tres" id="94_chain_reactor"]
+[ext_resource type="Resource" path="res://Data/Items/fork_stabilizer.tres" id="95_fork_stabilizer"]
+[ext_resource type="Resource" path="res://Data/Items/expanding_sigils.tres" id="96_expanding_sigils"]
+[ext_resource type="Resource" path="res://Data/Items/cosmic_geometry.tres" id="97_cosmic_geometry"]
+[ext_resource type="Resource" path="res://Data/Items/clockwork_focus.tres" id="98_clockwork_focus"]
+[ext_resource type="Resource" path="res://Data/Items/chrono_core.tres" id="99_chrono_core"]
+[ext_resource type="Resource" path="res://Data/Items/emberglass_prism.tres" id="100_emberglass_prism"]
+[ext_resource type="Resource" path="res://Data/Items/ironwood_icon.tres" id="101_ironwood_icon"]
+[ext_resource type="Resource" path="res://Data/Items/truesight_lens.tres" id="102_truesight_lens"]
+[ext_resource type="Resource" path="res://Data/Items/phase_needle.tres" id="103_phase_needle"]
+[ext_resource type="Resource" path="res://Data/Items/null_shard.tres" id="104_null_shard"]
+[ext_resource type="Resource" path="res://Data/Items/sundering_gauge.tres" id="105_sundering_gauge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape_arena_horizontal"]
 size = Vector2(1640, 40)
@@ -211,8 +237,8 @@ inventory = NodePath("../../World/Actors/Player/PlayerInventoryComponent")
 weapon_loadout = NodePath("../../World/Actors/Player/WeaponLoadoutComponent")
 player_stats = NodePath("../../World/Actors/Player/StatComponent")
 rarity_manager = ExtResource("19_rarity_manager")
-shop_items = Array[ExtResource("18_item_definition")]([ExtResource("15_shoes"), ExtResource("25_leather_padding"), ExtResource("26_iron_nail"), ExtResource("27_ember_shard"), ExtResource("28_copper_coil"), ExtResource("29_frost_chip"), ExtResource("30_practice_manual"), ExtResource("31_quick_fingers"), ExtResource("32_smooth_powder"), ExtResource("33_scout_lens"), ExtResource("34_long_barrel"), ExtResource("35_small_magnet"), ExtResource("16_magnet"), ExtResource("36_battle_gloves"), ExtResource("37_reinforced_vest"), ExtResource("38_hot_lead"), ExtResource("39_keen_sights"), ExtResource("40_runners_belt"), ExtResource("17_notes"), ExtResource("41_hunters_ledger"), ExtResource("42_singularity_rounds"), ExtResource("20_head_taker"), ExtResource("21_splinter"), ExtResource("22_pinata"), ExtResource("23_locket"), ExtResource("24_compass")])
-shop_weapons = Array[ExtResource("73_pistol_weapon")]([ExtResource("73_pistol_weapon"), ExtResource("74_machine_gun_weapon"), ExtResource("75_shotgun_weapon")])
+shop_items = Array[ExtResource("18_item_definition")]([ExtResource("15_shoes"), ExtResource("25_leather_padding"), ExtResource("26_iron_nail"), ExtResource("27_elemental_shard"), ExtResource("78_iron_plates"), ExtResource("79_silk_treads"), ExtResource("80_ward_pebble"), ExtResource("30_practice_manual"), ExtResource("31_quick_fingers"), ExtResource("32_smooth_powder"), ExtResource("33_scout_lens"), ExtResource("34_long_barrel"), ExtResource("35_small_magnet"), ExtResource("16_magnet"), ExtResource("36_battle_gloves"), ExtResource("37_reinforced_vest"), ExtResource("81_tempered_plates"), ExtResource("82_ghostweave_thread"), ExtResource("83_ward_etching"), ExtResource("38_hot_lead"), ExtResource("39_keen_sights"), ExtResource("40_runners_belt"), ExtResource("17_notes"), ExtResource("41_hunters_ledger"), ExtResource("96_expanding_sigils"), ExtResource("98_clockwork_focus"), ExtResource("102_truesight_lens"), ExtResource("103_phase_needle"), ExtResource("104_null_shard"), ExtResource("84_ward_dynamo"), ExtResource("85_quickening_ward"), ExtResource("97_cosmic_geometry"), ExtResource("99_chrono_core"), ExtResource("105_sundering_gauge"), ExtResource("42_singularity_rounds"), ExtResource("94_chain_reactor"), ExtResource("95_fork_stabilizer"), ExtResource("20_head_taker"), ExtResource("21_splinter"), ExtResource("100_emberglass_prism"), ExtResource("101_ironwood_icon"), ExtResource("22_pinata"), ExtResource("23_locket"), ExtResource("24_compass")])
+shop_weapons = Array[ExtResource("73_pistol_weapon")]([ExtResource("73_pistol_weapon"), ExtResource("87_pistol_slow"), ExtResource("88_pistol_fork"), ExtResource("89_pistol_chain"), ExtResource("74_machine_gun_weapon"), ExtResource("75_shotgun_weapon"), ExtResource("86_wand_weapon")])
 
 [node name="WaveHUD" parent="." unique_id=214891584 instance=ExtResource("7_hud")]
 wave_director = NodePath("../Systems/WaveDirector")
@@ -240,7 +266,13 @@ progression = NodePath("../World/Actors/Player/PlayerProgressionComponent")
 [node name="StarterWeaponChoiceUI" type="CanvasLayer" parent="."]
 script = ExtResource("72_starter_weapon_ui")
 weapon_loadout = NodePath("../World/Actors/Player/WeaponLoadoutComponent")
-starter_weapons = Array[ExtResource("73_pistol_weapon")]([ExtResource("73_pistol_weapon"), ExtResource("74_machine_gun_weapon"), ExtResource("75_shotgun_weapon"), ExtResource("76_op_test_pistol")])
+starter_weapons = Array[ExtResource("73_pistol_weapon")]([ExtResource("73_pistol_weapon"), ExtResource("87_pistol_slow"), ExtResource("88_pistol_fork"), ExtResource("89_pistol_chain"), ExtResource("74_machine_gun_weapon"), ExtResource("75_shotgun_weapon"), ExtResource("86_wand_weapon"), ExtResource("76_op_test_pistol")])
+
+[node name="StarterSkillChoiceUI" type="CanvasLayer" parent="."]
+script = ExtResource("90_starter_skill_ui")
+active_skill_loadout = NodePath("../World/Actors/Player/ActiveSkillLoadoutComponent")
+weapon_loadout = NodePath("../World/Actors/Player/WeaponLoadoutComponent")
+available_skills = Array[ExtResource("91_bulletstorm_skill")]([ExtResource("91_bulletstorm_skill"), ExtResource("92_dash_skill"), ExtResource("93_frost_nova_skill")])
 
 [node name="MonsterInspectTooltip" type="CanvasLayer" parent="."]
 script = ExtResource("77_monster_tooltip")

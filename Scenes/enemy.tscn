@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://bjndpbcexe7lg"]
+[gd_scene load_steps=21 format=3 uid="uid://bjndpbcexe7lg"]
 
 [ext_resource type="Script" uid="uid://b40buoompy6ci" path="res://Scripts/Enemies/enemy.gd" id="1_0830c"]
 [ext_resource type="Texture2D" uid="uid://cgnhmqruv3l55" path="res://icon.svg" id="1_hghv2"]
@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/Rewards/reward_pickup.tscn" id="14_pickup"]
 [ext_resource type="Shader" uid="uid://csogpvda1i31" path="res://Shaders/walk_squash.gdshader" id="15_walk"]
 [ext_resource type="PackedScene" path="res://Scenes/Rewards/item_pickup.tscn" id="16_item_pickup"]
+[ext_resource type="Script" path="res://Scripts/Components/status_effect_component.gd" id="17_status"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_walk"]
 shader = ExtResource("15_walk")
@@ -63,6 +64,10 @@ hurtbox = NodePath("../Hurtbox")
 damage_number_scene = ExtResource("7_number")
 
 [node name="ContactDamageComponent" parent="." instance=ExtResource("8_contact")]
+
+[node name="StatusEffectComponent" type="Node" parent="."]
+script = ExtResource("17_status")
+stat_component = NodePath("../StatComponent")
 
 [node name="MonsterScalingComponent" type="Node" parent="."]
 script = ExtResource("12_scaling")

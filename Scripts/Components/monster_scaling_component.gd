@@ -11,8 +11,13 @@ func _ready() -> void:
 			stat_component = sibling
 			return
 
-func get_effectiveness_toughness_factor() -> float:
-	return maxf(0.01, 1.0 + _get_effectiveness() / 100.0)
+func get_combined_toughness() -> float:
+	var toughness := (
+		stat_component.get_stat(StatIds.TOUGHNESS)
+		if stat_component != null
+		else 0.0
+	)
+	return toughness + _get_effectiveness()
 
 func get_experience_multiplier() -> float:
 	var base_multiplier := 1.0

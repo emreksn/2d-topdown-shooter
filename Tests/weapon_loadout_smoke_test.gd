@@ -7,6 +7,8 @@ func _initialize() -> void:
 		return
 	if not _test_weapon_rarity_generation():
 		return
+	if not _test_pistol_base_variant_implicits():
+		return
 	print("weapon_loadout_smoke_test: PASS")
 	quit(0)
 
@@ -141,6 +143,64 @@ func _test_weapon_rarity_generation() -> bool:
 		if seen_stats.has(modifier.stat_id):
 			return _fail("Weapon rolled duplicate affix stats.")
 		seen_stats[modifier.stat_id] = true
+	return true
+
+func _test_pistol_base_variant_implicits() -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 34
+	var slow_offer := WeaponOffer.create(
+		load("res://Data/Weapons/pistol_slow.tres") as WeaponDefinition,
+		ItemDefinition.Rarity.COMMON,
+		rng
+	)
+	if slow_offer.implicit_modifiers.size() != 3:
+		return _fail("Slow pistol did not expose three implicit modifiers.")
+	if slow_offer.get_stat_display_text().find("Implicit:") < 0:
+		return _fail("Weapon base implicits are not displayed.")
+
+	var player := load("res://Scenes/player.tscn").instantiate() as Node2D
+	root.add_child(player)
+	var loadout := player.get_node("WeaponLoadoutComponent") as WeaponLoadoutComponent
+	if not loadout.equip_offer(slow_offer):
+		return _fail("Slow pistol variant did not equip.")
+	var slow_weapon := loadout.get_weapon(0) as ProjectileWeapon
+	var slow_behavior := slow_weapon._get_projectile_behavior()
+	if not is_equal_approx(float(slow_behavior[&"slow_chance"]), 100.0):
+		return _fail("Slow pistol did not inherit slow chance implicit.")
+	if not is_equal_approx(float(slow_behavior[&"slow_magnitude"]), 25.0):
+		return _fail("Slow pistol did not inherit slow magnitude implicit.")
+	if not is_equal_approx(float(slow_behavior[&"slow_duration"]), 2.0):
+		return _fail("Slow pistol did not inherit slow duration implicit.")
+
+	var progression := player.get_node(
+		"PlayerProgressionComponent"
+	) as PlayerProgressionComponent
+	loadout.sell_weapon(0, progression)
+
+	var fork_offer := WeaponOffer.create(
+		load("res://Data/Weapons/pistol_fork.tres") as WeaponDefinition,
+		ItemDefinition.Rarity.COMMON,
+		rng
+	)
+	if not loadout.equip_offer(fork_offer):
+		return _fail("Fork pistol variant did not equip.")
+	var fork_weapon := loadout.get_weapon(0) as ProjectileWeapon
+	if int(fork_weapon._get_projectile_behavior()[&"fork"]) != 1:
+		return _fail("Fork pistol did not inherit +1 Fork implicit.")
+	loadout.sell_weapon(0, progression)
+
+	var chain_offer := WeaponOffer.create(
+		load("res://Data/Weapons/pistol_chain.tres") as WeaponDefinition,
+		ItemDefinition.Rarity.COMMON,
+		rng
+	)
+	if not loadout.equip_offer(chain_offer):
+		return _fail("Chain pistol variant did not equip.")
+	var chain_weapon := loadout.get_weapon(0) as ProjectileWeapon
+	if int(chain_weapon._get_projectile_behavior()[&"chain"]) != 1:
+		return _fail("Chain pistol did not inherit +1 Chain implicit.")
+
+	player.queue_free()
 	return true
 
 func _fail(message: String) -> bool:

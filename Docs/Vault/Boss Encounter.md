@@ -15,10 +15,10 @@ A boss does not pause normal wave spawning. It enters after the wave begins, fol
 
 ## Rewards
 
-Bosses do not guarantee particular drops. Their loot uses the same underlying model as elite monsters with substantially increased item rarity and quantity.
+Bosses do not guarantee particular drops. Their loot uses the same underlying model as rare monsters with substantially increased item rarity and quantity.
 
 > [!note] Balance target
-> A value around 10× an elite's rarity and quantity is an initial placeholder, not a final balance value.
+> A value around 10x a rare monster's rarity and quantity is an initial placeholder, not a final balance value.
 
 ## Design goals
 

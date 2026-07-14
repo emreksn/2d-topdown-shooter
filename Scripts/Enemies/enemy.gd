@@ -1,6 +1,14 @@
 class_name Enemy
 extends CharacterBody2D
 
+signal recycle_requested(enemy: Enemy)
+
+enum MonsterRarity {
+	NORMAL,
+	UNCOMMON,
+	RARE
+}
+
 @export var movement_speed: float = 100.0
 @export var movement_behavior: MovementBehavior
 @export var targeting_component: TargetingComponent
@@ -18,6 +26,9 @@ extends CharacterBody2D
 @export_range(0.01, 1.0, 0.01) var death_pop_duration: float = 0.22
 
 var spawn_tags: Array[StringName] = [&"monster"]
+var monster_rarity: MonsterRarity = MonsterRarity.NORMAL
+var monster_rarity_display_name := "Normal"
+var rare_modifier_names: Array[String] = []
 var _runtime_modifier_registry: RuntimeModifierRegistry
 var _runtime_source_ids: Array[StringName] = []
 var _forced_chase_target: Node2D
@@ -28,6 +39,13 @@ var _base_position := Vector2.ZERO
 var _hit_tween: Tween
 var _death_tween: Tween
 var _is_dying := false
+var _pool_recycling_enabled := false
+var _initial_collision_layer: int = 0
+var _initial_collision_mask: int = 0
+var _initial_modulate := Color.WHITE
+var _initial_z_index: int = 0
+var _initial_stat_profile: StatProfile
+var _pool_baseline_captured := false
 
 @onready var _sprite: Sprite2D = $Sprite
 
@@ -35,8 +53,7 @@ func _ready() -> void:
 	input_pickable = true
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
-	_base_scale = scale
-	_base_position = position
+	capture_pool_baseline()
 	for child in get_children():
 		if movement_behavior == null and child is MovementBehavior:
 			movement_behavior = child
@@ -52,8 +69,115 @@ func _ready() -> void:
 		health_component.died.connect(_on_died)
 	_setup_walk_squash()
 
+func capture_pool_baseline() -> void:
+	if _pool_baseline_captured:
+		return
+	_pool_baseline_captured = true
+	_initial_collision_layer = collision_layer
+	_initial_collision_mask = collision_mask
+	_initial_modulate = modulate
+	_initial_z_index = z_index
+	_base_scale = scale
+	_base_position = position
+	for child in get_children():
+		if movement_behavior == null and child is MovementBehavior:
+			movement_behavior = child
+		elif targeting_component == null and child is TargetingComponent:
+			targeting_component = child
+		elif health_component == null and child is HealthComponent:
+			health_component = child
+		elif stat_component == null and child is StatComponent:
+			stat_component = child
+	if is_instance_valid(stat_component):
+		_initial_stat_profile = stat_component.base_profile
+
+func enable_pool_recycling() -> void:
+	_pool_recycling_enabled = true
+
+func reset_for_pool_spawn() -> void:
+	if is_instance_valid(_hit_tween):
+		_hit_tween.kill()
+	if is_instance_valid(_death_tween):
+		_death_tween.kill()
+
+	_is_dying = false
+	_forced_chase_target = null
+	_walk_squash_amount = 0.0
+	velocity = Vector2.ZERO
+	scale = _base_scale
+	position = _base_position
+	modulate = _initial_modulate
+	z_index = _initial_z_index
+	input_pickable = true
+	collision_layer = _initial_collision_layer
+	collision_mask = _initial_collision_mask
+	set_physics_process(true)
+	set_process(true)
+
+	_reset_runtime_modifiers()
+	_reset_combat_children()
+	if is_instance_valid(health_component):
+		health_component.reset()
+	if is_instance_valid(_walk_material):
+		_walk_material.set_shader_parameter("movement_amount", 0.0)
+		_walk_material.set_shader_parameter("flash_amount", 0.0)
+
+func _reset_runtime_modifiers() -> void:
+	if (
+		is_instance_valid(_runtime_modifier_registry)
+		and _runtime_modifier_registry.sources_changed.is_connected(
+			_sync_runtime_modifier_sources
+		)
+	):
+		_runtime_modifier_registry.sources_changed.disconnect(
+			_sync_runtime_modifier_sources
+		)
+	_runtime_modifier_registry = null
+	_runtime_source_ids.clear()
+	spawn_tags = [&"monster"]
+	monster_rarity = MonsterRarity.NORMAL
+	monster_rarity_display_name = "Normal"
+	rare_modifier_names.clear()
+	if is_instance_valid(stat_component):
+		stat_component.clear_modifier_sources()
+		stat_component.base_profile = _initial_stat_profile
+		stat_component.set_default_context_tags(spawn_tags)
+
+func _reset_combat_children() -> void:
+	for child in get_children():
+		child.set_process(true)
+		child.set_physics_process(true)
+		if child is CollisionShape2D:
+			(child as CollisionShape2D).disabled = false
+		elif child is Hurtbox:
+			var hurtbox := child as Hurtbox
+			hurtbox.monitoring = true
+			hurtbox.monitorable = true
+			hurtbox._invulnerability_remaining = 0.0
+			for hurtbox_child in hurtbox.get_children():
+				hurtbox_child.set_process(true)
+				hurtbox_child.set_physics_process(true)
+				if hurtbox_child is CollisionShape2D:
+					(hurtbox_child as CollisionShape2D).disabled = false
+		elif child is ContactDamageComponent:
+			(child as ContactDamageComponent).reset_for_pool_spawn()
+		elif child.has_method("reset_for_pool_spawn"):
+			child.reset_for_pool_spawn()
+
 func get_inspection_name() -> String:
-	return name.to_pascal_case().replace("Enemy", " Enemy")
+	var base_name := name.to_pascal_case().replace("Enemy", " Enemy")
+	if monster_rarity == MonsterRarity.NORMAL:
+		return base_name
+	return "%s %s" % [monster_rarity_display_name, base_name]
+
+func configure_monster_rarity(
+	rarity: MonsterRarity,
+	display_name: String,
+	modifier_names: Array[String] = []
+) -> void:
+	monster_rarity = rarity
+	monster_rarity_display_name = display_name
+	rare_modifier_names = modifier_names.duplicate()
 
 func _on_mouse_entered() -> void:
 	if _is_dying:
@@ -206,7 +330,7 @@ func _play_death_pop() -> void:
 		_base_scale * 0.35,
 		death_pop_duration * 0.65
 	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	_death_tween.finished.connect(queue_free, CONNECT_ONE_SHOT)
+	_death_tween.finished.connect(_despawn_after_death, CONNECT_ONE_SHOT)
 
 func _set_flash_amount(amount: float) -> void:
 	if is_instance_valid(_walk_material):
@@ -232,6 +356,12 @@ func _disable_combat_collision() -> void:
 		if child.has_method("set_physics_process"):
 			child.set_physics_process(false)
 
+func _despawn_after_death() -> void:
+	if _pool_recycling_enabled:
+		recycle_requested.emit(self)
+	else:
+		queue_free()
+
 func configure_spawn_context(
 	context_tags: Array[StringName],
 	modifier_sources: Dictionary,
@@ -253,6 +383,9 @@ func configure_spawn_context(
 				_sync_runtime_modifier_sources
 			)
 		_sync_runtime_modifier_sources()
+	var health := get_node_or_null("HealthComponent") as HealthComponent
+	if is_instance_valid(health):
+		health.reset()
 
 func _sync_runtime_modifier_sources() -> void:
 	var stats := get_node_or_null("StatComponent") as StatComponent

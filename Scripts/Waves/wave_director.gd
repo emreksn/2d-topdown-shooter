@@ -37,6 +37,7 @@ enum State {
 @export_range(0, 500, 1, "or_greater") var animated_auto_collect_limit: int = 40
 @export var repeat_last_definition: bool = true
 @export_range(0, 1000000, 1, "or_greater") var repeated_wave_budget_increase: int = 10
+@export_range(0.0, 1000.0, 0.5, "or_greater") var monster_base_health_increase_per_wave: float = 10.0
 
 var state: State = State.PREPARATION
 var current_wave_number: int = 0
@@ -154,12 +155,12 @@ func finish_shop_phase() -> void:
 
 func _run_end_wave_cleanup(completed_wave_number: int) -> void:
 	end_wave_cleanup_started.emit(completed_wave_number)
-	_auto_collect_drops()
+	var animated_drops := _auto_collect_drops()
 	if reward_collection_show_duration > 0.0:
 		var tree := get_tree()
 		if tree != null:
 			await tree.create_timer(reward_collection_show_duration).timeout
-	await _wait_for_auto_collect_drops()
+	await _wait_for_auto_collect_drops(animated_drops)
 	end_wave_cleanup_completed.emit(completed_wave_number)
 
 func _resolve_pending_level_ups(completed_wave_number: int) -> void:
@@ -203,29 +204,26 @@ func _resolve_content_choice(next_wave_number: int) -> bool:
 	content_choices_completed.emit(next_wave_number)
 	return true
 
-func _auto_collect_drops() -> void:
+func _auto_collect_drops() -> Array[Node]:
 	var tree := get_tree()
 	if tree == null:
-		return
+		return []
 	if not is_instance_valid(player):
 		player = tree.get_first_node_in_group(&"player") as Node2D
 	if not is_instance_valid(player):
-		return
+		return []
 
-	var collectable_count := _get_collectable_drop_count()
-	if collectable_count > animated_auto_collect_limit:
-		_batch_collect_drops()
-		return
+	var drops := _get_collectable_drops()
+	if drops.size() > animated_auto_collect_limit:
+		_batch_collect_drops(drops)
+		return []
 
-	var drop_containers := tree.get_nodes_in_group(&"drops_container")
-	for container in drop_containers:
-		if not is_instance_valid(container):
-			continue
-		for drop in container.get_children():
-			if drop.has_method("collect_for"):
-				drop.collect_for(player)
+	for drop in drops:
+		if is_instance_valid(drop):
+			drop.collect_for(player)
+	return drops
 
-func _batch_collect_drops() -> void:
+func _batch_collect_drops(drops: Array[Node]) -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
@@ -246,32 +244,30 @@ func _batch_collect_drops() -> void:
 
 	var gold_total := 0
 	var experience_total := 0.0
-	var drop_containers := tree.get_nodes_in_group(&"drops_container")
-	for container in drop_containers:
-		if not is_instance_valid(container):
+	for drop in drops:
+		if not is_instance_valid(drop):
 			continue
-		for drop in container.get_children():
-			var reward_pickup := drop as RewardPickup
-			if is_instance_valid(reward_pickup):
-				if reward_pickup.reward_type == RewardPickup.RewardType.GOLD:
-					gold_total += maxi(1, roundi(reward_pickup.amount))
-				else:
-					experience_total += reward_pickup.amount
-				reward_pickup.queue_free()
-				continue
+		var reward_pickup := drop as RewardPickup
+		if is_instance_valid(reward_pickup):
+			if reward_pickup.reward_type == RewardPickup.RewardType.GOLD:
+				gold_total += maxi(1, roundi(reward_pickup.amount))
+			else:
+				experience_total += reward_pickup.amount
+			reward_pickup.queue_free()
+			continue
 
-			var item_pickup := drop as ItemPickup
-			if is_instance_valid(item_pickup):
-				if item_pickup.item != null:
-					if is_instance_valid(evaluation_director):
-						evaluation_director.queue_item(item_pickup.item)
-					elif is_instance_valid(inventory):
-						inventory.add_item(item_pickup.item)
-				item_pickup.queue_free()
-				continue
+		var item_pickup := drop as ItemPickup
+		if is_instance_valid(item_pickup):
+			if item_pickup.item != null:
+				if is_instance_valid(evaluation_director):
+					evaluation_director.queue_item(item_pickup.item)
+				elif is_instance_valid(inventory):
+					inventory.add_item(item_pickup.item)
+			item_pickup.queue_free()
+			continue
 
-			if drop.has_method("collect_for"):
-				drop.collect_for(player)
+		if drop.has_method("collect_for"):
+			drop.collect_for(player)
 
 	if is_instance_valid(progression):
 		if gold_total > 0:
@@ -279,29 +275,41 @@ func _batch_collect_drops() -> void:
 		if experience_total > 0.0:
 			progression.add_experience(experience_total)
 
-func _wait_for_auto_collect_drops() -> void:
+func _wait_for_auto_collect_drops(drops: Array[Node]) -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
+	if drops.is_empty():
+		return
 	var timeout := 1.0
-	while timeout > 0.0 and _get_collectable_drop_count() > 0:
+	while timeout > 0.0 and _has_pending_collected_drops(drops):
 		var step := 0.05
 		await tree.create_timer(step).timeout
 		timeout -= step
 
-func _get_collectable_drop_count() -> int:
+func _get_collectable_drops() -> Array[Node]:
 	var tree := get_tree()
 	if tree == null:
-		return 0
-	var count := 0
+		return []
+	var drops: Array[Node] = []
 	var drop_containers := tree.get_nodes_in_group(&"drops_container")
 	for container in drop_containers:
 		if not is_instance_valid(container):
 			continue
 		for drop in container.get_children():
 			if drop.has_method("collect_for"):
-				count += 1
-	return count
+				drops.append(drop)
+	return drops
+
+func _has_pending_collected_drops(drops: Array[Node]) -> bool:
+	for drop in drops:
+		if (
+			is_instance_valid(drop)
+			and drop.is_inside_tree()
+			and not drop.is_queued_for_deletion()
+		):
+			return true
+	return false
 
 func _get_definition_for_wave(wave_number: int) -> WaveDefinition:
 	if wave_number <= wave_definitions.size():
@@ -318,6 +326,7 @@ func _get_prepared_definition_for_wave(wave_number: int) -> WaveDefinition:
 	if prepared_definition == null:
 		return base_definition
 	_apply_repeated_wave_budget_scaling(wave_number, prepared_definition)
+	_apply_wave_monster_health_scaling(wave_number, prepared_definition)
 	if is_instance_valid(content_manager):
 		content_manager.apply_content_to_wave(wave_number, prepared_definition)
 	return prepared_definition
@@ -334,6 +343,20 @@ func _apply_repeated_wave_budget_scaling(
 		return
 	var repeated_wave_index := wave_number - wave_definitions.size()
 	definition.spawn_budget += repeated_wave_index * repeated_wave_budget_increase
+
+func _apply_wave_monster_health_scaling(
+	wave_number: int,
+	definition: WaveDefinition
+) -> void:
+	if definition == null or monster_base_health_increase_per_wave <= 0.0:
+		return
+	var increase := (
+		float(maxi(wave_number - 1, 0))
+		* monster_base_health_increase_per_wave
+	)
+	if increase <= 0.0:
+		return
+	definition.monster_base_health_multiplier *= 1.0 + increase / 100.0
 
 func _find_spawn_director() -> SpawnDirector:
 	for sibling in get_parent().get_children():

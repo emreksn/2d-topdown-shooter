@@ -16,8 +16,10 @@ const SLOT_COUNT := 2
 
 var cooldowns: Array[float] = []
 var active_skill_slots: Dictionary = {}
+var bound_weapon_slots: Array[int] = []
 var last_move_direction := Vector2.RIGHT
 var _starter_skills_resolved := false
+var _weapon_loadout_connected := false
 
 func _ready() -> void:
 	_resolve_dependencies()
@@ -58,6 +60,7 @@ func equip_skill(slot_index: int, skill: ActiveSkillDefinition) -> bool:
 		active_skill_slots.erase(slot_index)
 	skills[slot_index] = skill
 	cooldowns[slot_index] = 0.0
+	_refresh_skill_weapon_bindings()
 	skills_changed.emit()
 	return true
 
@@ -70,7 +73,7 @@ func activate_slot(slot_index: int) -> bool:
 		skill_failed.emit(slot_index, "No skill equipped.")
 		return false
 	if not skill.can_activate(self, slot_index):
-		skill_failed.emit(slot_index, "%s is on cooldown." % skill.display_name)
+		skill_failed.emit(slot_index, _get_activation_failure_reason(skill, slot_index))
 		return false
 	if not skill.activate(self, slot_index):
 		skill_failed.emit(slot_index, "%s failed." % skill.display_name)
@@ -125,6 +128,46 @@ func get_equipped_weapons() -> Array[Weapon]:
 			result.append(weapon)
 	return result
 
+func get_eligible_weapon_slots(skill: ActiveSkillDefinition) -> Array[int]:
+	_resolve_dependencies()
+	var result: Array[int] = []
+	if skill == null or not is_instance_valid(weapon_loadout):
+		return result
+	for index: int in range(WeaponLoadoutComponent.SLOT_COUNT):
+		var weapon := weapon_loadout.get_weapon(index)
+		if skill.is_weapon_eligible(weapon):
+			result.append(index)
+	return result
+
+func bind_skill_to_weapon(skill_slot_index: int, weapon_slot_index: int) -> bool:
+	_ensure_slots()
+	var skill := get_skill(skill_slot_index)
+	if skill == null or not skill.requires_weapon:
+		return false
+	if not get_eligible_weapon_slots(skill).has(weapon_slot_index):
+		return false
+	bound_weapon_slots[skill_slot_index] = weapon_slot_index
+	skills_changed.emit()
+	return true
+
+func get_bound_weapon_slot(skill_slot_index: int) -> int:
+	_ensure_slots()
+	if skill_slot_index < 0 or skill_slot_index >= SLOT_COUNT:
+		return -1
+	var skill := get_skill(skill_slot_index)
+	if skill == null or not skill.requires_weapon:
+		return -1
+	var bound_slot := bound_weapon_slots[skill_slot_index]
+	if not get_eligible_weapon_slots(skill).has(bound_slot):
+		bound_slot = _auto_bind_skill_weapon(skill_slot_index, skill)
+	return bound_slot
+
+func get_bound_weapon(skill_slot_index: int) -> Weapon:
+	var weapon_slot := get_bound_weapon_slot(skill_slot_index)
+	if weapon_slot < 0 or not is_instance_valid(weapon_loadout):
+		return null
+	return weapon_loadout.get_weapon(weapon_slot)
+
 func _resolve_dependencies() -> void:
 	if not is_instance_valid(player):
 		player = get_parent() as CharacterBody2D
@@ -135,6 +178,8 @@ func _resolve_dependencies() -> void:
 			weapon_loadout = player.get_node_or_null(
 				"WeaponLoadoutComponent"
 			) as WeaponLoadoutComponent
+	if is_instance_valid(weapon_loadout):
+		_connect_weapon_loadout()
 
 func _update_last_move_direction() -> void:
 	var input_direction := Vector2(
@@ -149,6 +194,8 @@ func _ensure_slots() -> void:
 		skills.append(null)
 	while cooldowns.size() < SLOT_COUNT:
 		cooldowns.append(0.0)
+	while bound_weapon_slots.size() < SLOT_COUNT:
+		bound_weapon_slots.append(-1)
 
 func _resolve_starter_skills() -> void:
 	if _starter_skills_resolved:
@@ -158,3 +205,44 @@ func _resolve_starter_skills() -> void:
 	if skills[1] == null:
 		skills[1] = skill_slot_2 as ActiveSkillDefinition
 	_starter_skills_resolved = true
+	_refresh_skill_weapon_bindings()
+
+func _refresh_skill_weapon_bindings() -> void:
+	_ensure_slots()
+	for index: int in range(SLOT_COUNT):
+		var skill := skills[index]
+		if skill == null or not skill.requires_weapon:
+			bound_weapon_slots[index] = -1
+			continue
+		var eligible_slots := get_eligible_weapon_slots(skill)
+		if not eligible_slots.has(bound_weapon_slots[index]):
+			bound_weapon_slots[index] = eligible_slots[0] if not eligible_slots.is_empty() else -1
+
+func _auto_bind_skill_weapon(
+	skill_slot_index: int,
+	skill: ActiveSkillDefinition
+) -> int:
+	var eligible_slots := get_eligible_weapon_slots(skill)
+	var bound_slot := eligible_slots[0] if not eligible_slots.is_empty() else -1
+	bound_weapon_slots[skill_slot_index] = bound_slot
+	return bound_slot
+
+func _get_activation_failure_reason(
+	skill: ActiveSkillDefinition,
+	slot_index: int
+) -> String:
+	if get_cooldown_remaining(slot_index) > 0.0:
+		return "%s is on cooldown." % skill.display_name
+	if skill.requires_weapon:
+		return "%s needs an eligible weapon." % skill.display_name
+	return "%s failed." % skill.display_name
+
+func _on_weapon_loadout_changed() -> void:
+	_refresh_skill_weapon_bindings()
+	skills_changed.emit()
+
+func _connect_weapon_loadout() -> void:
+	if _weapon_loadout_connected or not is_instance_valid(weapon_loadout):
+		return
+	weapon_loadout.loadout_changed.connect(_on_weapon_loadout_changed)
+	_weapon_loadout_connected = true

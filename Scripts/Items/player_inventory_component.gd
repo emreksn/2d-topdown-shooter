@@ -103,6 +103,14 @@ func get_item_counts() -> Dictionary:
 func get_active_relic(slot: ItemDefinition.RelicSlot) -> ItemDefinition:
 	return active_relics.get(slot) as ItemDefinition
 
+func get_damage_conversions() -> Array[DamageConversion]:
+	var result: Array[DamageConversion] = []
+	for item in items:
+		_append_item_damage_conversions(result, item)
+	for slot_key in active_relics:
+		_append_item_damage_conversions(result, active_relics[slot_key])
+	return result
+
 func refresh_modifiers() -> void:
 	_apply_all_modifiers()
 
@@ -161,6 +169,16 @@ func _get_weapon_stat_components() -> Array[StatComponent]:
 			if child is StatComponent:
 				result.append(child)
 	return result
+
+func _append_item_damage_conversions(
+	result: Array[DamageConversion],
+	item: ItemDefinition
+) -> void:
+	if item == null:
+		return
+	for conversion in item.damage_conversions:
+		if conversion != null:
+			result.append(conversion)
 
 func _remove_inventory_item(item: ItemDefinition) -> bool:
 	var index := items.find(item)

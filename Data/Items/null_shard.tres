@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Items/item_definition.gd" id="1_item"]
+[ext_resource type="Script" path="res://Scripts/Stats/modifier_set.gd" id="2_set"]
+[ext_resource type="Script" path="res://Scripts/Stats/stat_modifier.gd" id="3_modifier"]
+
+[sub_resource type="Resource" id="ElementalPenetration"]
+script = ExtResource("3_modifier")
+stat_id = &"elemental_resistance_penetration"
+value = 10.0
+target_domain = &"player"
+
+[sub_resource type="Resource" id="Modifiers"]
+script = ExtResource("2_set")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("ElementalPenetration")])
+
+[resource]
+script = ExtResource("1_item")
+id = &"null_shard"
+display_name = "Null Shard"
+description = "+10% to elemental resistance penetration"
+rarity = 2
+cost = 34
+modifier_set = SubResource("Modifiers")

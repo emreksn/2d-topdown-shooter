@@ -9,9 +9,9 @@ extends Node
 
 @export_category("Typed Damage")
 @export var physical_color := Color(0.95, 0.95, 0.9, 1.0)
-@export var lightning_color := Color(1.0, 0.9, 0.2, 1.0)
-@export var cold_color := Color(0.25, 0.8, 1.0, 1.0)
-@export var fire_color := Color(1.0, 0.3, 0.12, 1.0)
+@export var elemental_color := Color("#CFA6FF")
+@export var evaded_color := Color(0.72, 0.9, 1.0, 1.0)
+@export var deflected_color := Color(0.72, 0.95, 0.78, 1.0)
 @export_range(0.0, 1.0, 0.005) var discard_below_ratio: float = 0.02
 @export_range(0.1, 1.0, 0.05) var minimum_size_multiplier: float = 0.5
 @export_range(0.0, 64.0, 1.0) var number_spacing: float = 22.0
@@ -53,7 +53,14 @@ func _on_damage_resolved(
 	applied_damage: float,
 	_source: Node
 ) -> void:
-	if result == null or result.total_damage <= 0.0:
+	if result == null:
+		return
+	if result.was_evaded:
+		_emit_text("EVADED", evaded_color, 0.9)
+		return
+	if result.was_deflected:
+		_emit_text("DEFLECTED", deflected_color, 0.85)
+	if result.total_damage <= 0.0:
 		return
 
 	var largest_amount: float = 0.0
@@ -67,9 +74,10 @@ func _on_damage_resolved(
 	if largest_amount <= 0.0 or typed_total <= 0.0:
 		return
 
-	# The typed breakdown is captured before Toughness. Scale it back to the
-	# actual health loss so mitigation and overkill remain accurately displayed.
-	var applied_ratio := applied_damage / typed_total
+	var displayed_damage := applied_damage + result.arcane_shield_damage
+	if displayed_damage <= 0.0:
+		return
+	var applied_ratio := displayed_damage / typed_total
 	var displays: Array[Dictionary] = []
 	for damage_type in DamageTypeIds.ORDER:
 		var resolved_amount := float(
@@ -130,26 +138,39 @@ func _spawn_damage_number(
 	color: Color,
 	size_multiplier: float
 ) -> void:
+	var damage_number := _create_damage_number(spawn_position)
+	if damage_number == null:
+		return
+	damage_number.display(amount, color, size_multiplier)
+
+func _emit_text(text: String, color: Color, size_multiplier: float = 1.0) -> void:
+	var actor := get_parent() as Node2D
+	if not is_instance_valid(actor):
+		return
+	var damage_number := _create_damage_number(actor.global_position + world_offset)
+	if damage_number == null:
+		return
+	damage_number.display_text(text, color, size_multiplier)
+
+func _create_damage_number(spawn_position: Vector2) -> DamageNumber:
+	if damage_number_scene == null:
+		return null
 	var damage_number := damage_number_scene.instantiate() as DamageNumber
 	if damage_number == null:
 		push_warning("Damage number scene must have a DamageNumber root.")
-		return
+		return null
 
 	var effects_parent := get_tree().get_first_node_in_group(&"effects_container")
 	if effects_parent == null:
 		effects_parent = get_tree().current_scene
 	effects_parent.add_child(damage_number)
 	damage_number.global_position = spawn_position
-	damage_number.display(amount, color, size_multiplier)
+	return damage_number
 
 func _get_damage_color(damage_type: StringName) -> Color:
 	match damage_type:
 		DamageTypeIds.PHYSICAL:
 			return physical_color
-		DamageTypeIds.LIGHTNING:
-			return lightning_color
-		DamageTypeIds.COLD:
-			return cold_color
-		DamageTypeIds.FIRE:
-			return fire_color
+		DamageTypeIds.ELEMENTAL:
+			return elemental_color
 	return fallback_damage_color

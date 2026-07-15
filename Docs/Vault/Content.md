@@ -6,7 +6,7 @@ Content should provide optional goals beyond clearing ordinary waves. Its reward
 
 ## Selection and acquisition
 
-After shopping and before the next wave, the player is offered Content options and may instead choose **No extra content**. The current implementation offers one Content option because [[Rift]] is the only implemented Content type.
+After shopping and before the next wave, the player is offered Content options and may instead choose **No extra content**. The current implementation offers [[Rift]] from the start of a run and [[Boss Encounter]] after wave 10 has been completed.
 
 Items can also force Content onto the next wave through modifiers such as `Adds a Rift to the next wave`. Forced Content bypasses the ordinary choice for that wave.
 
@@ -18,7 +18,8 @@ Items can also force Content onto the next wave through modifiers such as `Adds 
 - `ContentManager` owns the available Content pool and selected Content for upcoming waves.
 - The wave flow is end-wave cleanup, level-up choices, shop, Content choice, preparation, then the next wave.
 - The selected Content is applied to a duplicated `WaveDefinition` for the next wave, leaving base wave resources clean.
-- The current Content choice screen rolls modified [[Rift]] offers and **No Extra Content**.
+- The current Content choice screen rolls modified [[Rift]] offers, unlocked [[Boss Encounter]] offers, and **No Extra Content**.
+- Boss Encounter offers are hidden before wave 11 and on forced boss milestone waves.
 - Base waves no longer force Rift portals directly.
 
 ## Content variants
@@ -59,7 +60,7 @@ Current Rift extra modifier pool:
 
 - [[Rift]] — generic gold and experience.
 - [[Ancient Ritual]] — ritual-specific unique items and item-modifying currencies.
-- [[Boss Encounter]] — concentrated items, gold, and experience.
+- [[Boss Encounter]] — concentrated items, gold, and experience. Forced every tenth wave and optionally selectable after wave 10.
 - [[Hellforge Gauntlet]] — Essence of Hell, Hellmaster loot, and access to the Hellforge.
 - [[The Tower]] — escalating item modification and Tower currencies.
 

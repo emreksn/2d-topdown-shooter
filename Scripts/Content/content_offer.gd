@@ -38,6 +38,8 @@ func get_grant_lines() -> Array[String]:
 	if content == null:
 		return ["Start a normal wave."]
 	var lines: Array[String] = []
+	if content.kind == ContentDefinition.ContentKind.BOSS:
+		lines.append(content.description)
 	if variant != null:
 		lines.append_array(variant.get_wave_change_lines())
 		lines.append_array(variant.get_grant_lines())

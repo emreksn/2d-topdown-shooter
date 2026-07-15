@@ -3,19 +3,21 @@
 [ext_resource type="Script" path="res://Scripts/UI/wave_hud.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
-bg_color = Color(0.055, 0.06, 0.08, 0.88)
+bg_color = Color(0.045, 0.052, 0.068, 0.92)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.22, 0.24, 0.3, 0.9)
+border_color = Color(0.22, 0.78, 0.92, 0.72)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 16.0
+shadow_color = Color(0, 0, 0, 0.42)
+shadow_size = 12
+content_margin_left = 18.0
 content_margin_top = 12.0
-content_margin_right = 16.0
+content_margin_right = 18.0
 content_margin_bottom = 12.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_heading"]
@@ -34,7 +36,7 @@ anchor_right = 1.0
 offset_left = -244.0
 offset_top = 24.0
 offset_right = -24.0
-offset_bottom = 154.0
+offset_bottom = 162.0
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
 [node name="Rows" type="VBoxContainer" parent="Panel"]
@@ -49,12 +51,13 @@ horizontal_alignment = 1
 [node name="TimerLabel" type="Label" parent="Panel/Rows"]
 unique_name_in_owner = true
 text = "00"
+text = "TIME  00"
 label_settings = SubResource("LabelSettings_heading")
 horizontal_alignment = 1
 
 [node name="EnemiesLabel" type="Label" parent="Panel/Rows"]
 unique_name_in_owner = true
-text = "ENEMIES: 0"
+text = "ENEMIES  0"
 horizontal_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="Panel/Rows"]

@@ -10,6 +10,7 @@ extends CanvasLayer
 var _root_panel: PanelContainer
 var _status_label: Label
 var _title_label: Label
+var _gold_label: Label
 var _offer_column: VBoxContainer
 var _inventory_column: VBoxContainer
 var _offer_list: HBoxContainer
@@ -80,6 +81,7 @@ func _build_ui() -> void:
 	_toggle_button.position = Vector2(24.0, 124.0)
 	_toggle_button.size = Vector2(128.0, 34.0)
 	_toggle_button.pressed.connect(_toggle_inventory_panel)
+	UiPresentation.apply_action_button_style(_toggle_button, Color(0.74, 0.86, 1.0, 1.0))
 	add_child(_toggle_button)
 
 	_root_panel = PanelContainer.new()
@@ -101,9 +103,16 @@ func _build_ui() -> void:
 
 	_title_label = Label.new()
 	_title_label.text = "SHOP"
-	_title_label.add_theme_font_size_override("font_size", 24)
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiPresentation.apply_heading(_title_label, 26)
 	header.add_child(_title_label)
+
+	_gold_label = Label.new()
+	_gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_gold_label.custom_minimum_size = Vector2(150.0, 0.0)
+	UiPresentation.apply_heading(_gold_label, 20)
+	_gold_label.add_theme_color_override("font_color", UiPresentation.GOLD)
+	header.add_child(_gold_label)
 
 	var columns := HBoxContainer.new()
 	columns.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -140,10 +149,12 @@ func _build_ui() -> void:
 
 	_status_label = Label.new()
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiPresentation.apply_body_label(_status_label, true, 13)
 	_footer.add_child(_status_label)
 
 	_reroll_button = Button.new()
 	_reroll_button.text = "Reroll"
+	UiPresentation.apply_action_button_style(_reroll_button, Color(0.52, 0.72, 1.0, 1.0))
 	_reroll_button.pressed.connect(func() -> void:
 		if is_instance_valid(shop_director):
 			shop_director.reroll_offers()
@@ -152,6 +163,7 @@ func _build_ui() -> void:
 
 	_next_button = Button.new()
 	_next_button.text = "Start Next Wave"
+	UiPresentation.apply_action_button_style(_next_button, Color(0.34, 0.95, 0.52, 1.0))
 	_next_button.pressed.connect(func() -> void:
 		if is_instance_valid(shop_director):
 			shop_director.leave_shop()
@@ -176,7 +188,7 @@ func _make_column(
 
 	var label := Label.new()
 	label.text = title_text
-	label.add_theme_font_size_override("font_size", 17)
+	UiPresentation.apply_heading(label, 17)
 	box.add_child(label)
 	return box
 
@@ -258,6 +270,8 @@ func _refresh_mode() -> void:
 			else Control.SIZE_EXPAND_FILL
 		)
 	_title_label.text = "SHOP" if shop_active else "INVENTORY"
+	if is_instance_valid(_gold_label):
+		_gold_label.text = "GOLD  %d" % (progression.gold if is_instance_valid(progression) else 0)
 	if is_instance_valid(_reroll_button) and is_instance_valid(shop_director):
 		_reroll_button.disabled = not shop_active
 		_reroll_button.text = "Reroll %dg" % shop_director.get_current_reroll_cost()
@@ -292,16 +306,21 @@ func _make_offer_slot(index: int, offer) -> Control:
 		UiPresentation.apply_empty_button_style(button)
 	elif weapon_offer != null:
 		var blocked_by_weapon_slots := shop_director.is_offer_blocked_by_weapon_slots(index)
+		var unaffordable := not _can_afford_offer(index)
 		button.text = weapon_offer.get_offer_text(_get_current_wave_number())
 		if blocked_by_weapon_slots:
 			button.text += "\nWeapon slots full"
 			button.disabled = true
+		elif unaffordable:
+			button.text += "\nNeed %dg more" % _get_missing_gold(index)
+			button.disabled = true
 		UiPresentation.apply_rarity_button_style(button, weapon_offer.rarity)
-		if not blocked_by_weapon_slots:
+		if not blocked_by_weapon_slots and not unaffordable:
 			button.pressed.connect(_on_offer_pressed.bind(index))
 	else:
 		var price := shop_director.current_prices[index]
 		var blocked_by_relic_slot := shop_director.is_offer_blocked_by_relic_slot(index)
+		var unaffordable := not _can_afford_offer(index)
 		button.text = "%s - %dg\n%s" % [
 			item.get_inventory_label(),
 			price,
@@ -310,8 +329,11 @@ func _make_offer_slot(index: int, offer) -> Control:
 		if blocked_by_relic_slot:
 			button.text += "\nSlot occupied"
 			button.disabled = true
+		elif unaffordable:
+			button.text += "\nNeed %dg more" % _get_missing_gold(index)
+			button.disabled = true
 		UiPresentation.apply_rarity_button_style(button, item.rarity)
-		if not blocked_by_relic_slot:
+		if not blocked_by_relic_slot and not unaffordable:
 			button.pressed.connect(_on_offer_pressed.bind(index))
 
 	var lock_button := Button.new()
@@ -319,8 +341,9 @@ func _make_offer_slot(index: int, offer) -> Control:
 		index < shop_director.current_locks.size()
 		and shop_director.current_locks[index]
 	)
-	lock_button.text = "Unlock" if is_locked else "Lock"
+	lock_button.text = "Pinned" if is_locked else "Pin"
 	lock_button.disabled = item == null and weapon_offer == null
+	UiPresentation.apply_action_button_style(lock_button, Color(0.74, 0.78, 0.84, 1.0))
 	lock_button.pressed.connect(_on_lock_offer_pressed.bind(index))
 	slot.add_child(lock_button)
 	return slot
@@ -348,7 +371,7 @@ func _refresh_inventory() -> void:
 func _add_weapon_slots() -> void:
 	var header := Label.new()
 	header.text = "Weapons"
-	header.add_theme_font_size_override("font_size", 15)
+	UiPresentation.apply_heading(header, 15)
 	_inventory_list.add_child(header)
 
 	if not is_instance_valid(weapon_loadout):
@@ -364,7 +387,7 @@ func _add_weapon_slots() -> void:
 func _add_relic_slots() -> void:
 	var header := Label.new()
 	header.text = "Relics"
-	header.add_theme_font_size_override("font_size", 15)
+	UiPresentation.apply_heading(header, 15)
 	_inventory_list.add_child(header)
 
 	var slots: Array[ItemDefinition.RelicSlot] = [
@@ -386,7 +409,7 @@ func _add_relic_slots() -> void:
 
 	var inventory_header := Label.new()
 	inventory_header.text = "Items"
-	inventory_header.add_theme_font_size_override("font_size", 15)
+	UiPresentation.apply_heading(inventory_header, 15)
 	_inventory_list.add_child(inventory_header)
 
 func _make_inventory_entry(
@@ -400,6 +423,7 @@ func _make_inventory_entry(
 	var label := Label.new()
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.text = _get_inventory_display_text(item, count, is_active_relic)
+	label.add_theme_color_override("font_color", UiPresentation.get_rarity_color(item.rarity))
 	box.add_child(label)
 
 	var actions := HBoxContainer.new()
@@ -412,6 +436,7 @@ func _make_inventory_entry(
 	):
 		var equip_button := Button.new()
 		equip_button.text = "Equip"
+		UiPresentation.apply_action_button_style(equip_button, Color(0.34, 0.95, 0.52, 1.0))
 		equip_button.pressed.connect(_on_equip_inventory_relic.bind(item))
 		actions.add_child(equip_button)
 
@@ -420,6 +445,7 @@ func _make_inventory_entry(
 		sell_button.text = "Sell %dg" % item.get_sell_value(
 			_get_current_wave_number()
 		)
+		UiPresentation.apply_action_button_style(sell_button, UiPresentation.GOLD)
 		sell_button.pressed.connect(_on_sell_item.bind(item, is_active_relic))
 		actions.add_child(sell_button)
 
@@ -449,6 +475,7 @@ func _make_weapon_entry(slot_index: int, offer: WeaponOffer) -> Control:
 		offer.get_inventory_label(),
 		offer.get_stat_display_text()
 	]
+	label.add_theme_color_override("font_color", UiPresentation.get_rarity_color(offer.rarity))
 	box.add_child(label)
 
 	var actions := HBoxContainer.new()
@@ -457,6 +484,7 @@ func _make_weapon_entry(slot_index: int, offer: WeaponOffer) -> Control:
 
 	var sell_button := Button.new()
 	sell_button.text = "Sell %dg" % offer.get_sell_value(_get_current_wave_number())
+	UiPresentation.apply_action_button_style(sell_button, UiPresentation.GOLD)
 	sell_button.pressed.connect(_on_sell_weapon.bind(slot_index))
 	actions.add_child(sell_button)
 
@@ -506,10 +534,25 @@ func _get_current_wave_number() -> int:
 		return maxi(wave_director.current_wave_number, 1)
 	return 1
 
+func _can_afford_offer(index: int) -> bool:
+	if not is_instance_valid(progression) or not is_instance_valid(shop_director):
+		return true
+	if index < 0 or index >= shop_director.current_prices.size():
+		return true
+	return progression.gold >= shop_director.current_prices[index]
+
+func _get_missing_gold(index: int) -> int:
+	if not is_instance_valid(progression) or not is_instance_valid(shop_director):
+		return 0
+	if index < 0 or index >= shop_director.current_prices.size():
+		return 0
+	return maxi(shop_director.current_prices[index] - progression.gold, 0)
+
 func _add_note(column: Control, text: String) -> void:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiPresentation.apply_body_label(label, true, 13)
 	column.add_child(label)
 
 func _toggle_inventory_panel() -> void:

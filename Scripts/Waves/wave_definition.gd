@@ -15,6 +15,13 @@ extends Resource
 @export_range(0, 20, 1) var rift_portal_count: int = 0
 @export_range(1, 20, 1) var rift_monsters_per_portal: int = 3
 
+@export_category("Boss")
+@export var boss_entry: EnemySpawnEntry
+@export_range(0, 10, 1) var boss_spawn_count: int = 0
+@export_range(0.0, 60.0, 0.1, "or_greater") var boss_spawn_delay: float = 2.0
+@export_range(0.0, 10.0, 0.1, "or_greater") var boss_warning_duration: float = 1.25
+@export_range(0.0, 1000.0, 0.5, "or_greater") var boss_reward_multiplier: float = 20.0
+
 @export_category("Packs")
 @export_range(1, 100, 1, "or_greater") var minimum_pack_size: int = 2
 @export_range(1, 100, 1, "or_greater") var maximum_pack_size: int = 4

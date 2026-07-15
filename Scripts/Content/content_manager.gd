@@ -11,6 +11,8 @@ signal selection_completed(next_wave_number: int, selected_offer: ContentOffer)
 @export_range(0, 3, 1) var extra_modifier_count: int = 1
 @export_range(1, 4, 1) var offer_count: int = 2
 @export var include_no_content_option: bool = true
+@export_range(1, 1000, 1, "or_greater") var boss_content_unlock_wave: int = 11
+@export_range(1, 1000, 1, "or_greater") var boss_milestone_interval: int = 10
 
 var current_options: Array = []
 var next_wave_number: int = 0
@@ -65,7 +67,8 @@ func _roll_options() -> void:
 	current_options.clear()
 	var pool: Array[ContentOffer] = []
 	for content in available_content:
-		if content != null:
+		if content != null and _is_content_available(content):
+			var added_for_content := false
 			for variant in available_variants:
 				if variant != null and variant.can_apply_to(content):
 					pool.append(
@@ -75,7 +78,8 @@ func _roll_options() -> void:
 							_roll_extra_modifiers(content)
 						)
 					)
-			if available_variants.is_empty():
+					added_for_content = true
+			if not added_for_content:
 				pool.append(
 					ContentOffer.new(
 						content,
@@ -90,6 +94,17 @@ func _roll_options() -> void:
 		current_options.append(pool[index])
 	if include_no_content_option:
 		current_options.append(ContentOffer.new())
+
+func _is_content_available(content: ContentDefinition) -> bool:
+	if content == null:
+		return false
+	if content.kind != ContentDefinition.ContentKind.BOSS:
+		return true
+	if next_wave_number < boss_content_unlock_wave:
+		return false
+	if boss_milestone_interval > 0 and next_wave_number % boss_milestone_interval == 0:
+		return false
+	return true
 
 func _roll_extra_modifiers(
 	content: ContentDefinition

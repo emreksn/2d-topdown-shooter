@@ -20,6 +20,7 @@ var _settings_snapshot: Dictionary = {}
 var _requested_game_scene_path := ""
 
 func _ready() -> void:
+	_apply_main_button_styles()
 	play_button.pressed.connect(_on_play_pressed)
 	options_button.pressed.connect(_on_options_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -27,6 +28,11 @@ func _ready() -> void:
 	_build_options_overlay()
 	_request_game_scene_load()
 	play_button.grab_focus()
+
+func _apply_main_button_styles() -> void:
+	UiPresentation.apply_action_button_style(play_button, Color(0.34, 0.95, 0.52, 1.0))
+	UiPresentation.apply_action_button_style(options_button, Color(0.52, 0.72, 1.0, 1.0))
+	UiPresentation.apply_action_button_style(quit_button, Color(1.0, 0.42, 0.42, 1.0))
 
 func _on_play_pressed() -> void:
 	if _is_loading:
@@ -115,7 +121,7 @@ func _build_loading_overlay() -> void:
 	var label := Label.new()
 	label.text = "LOADING..."
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 24)
+	UiPresentation.apply_heading(label, 24)
 	margin.add_child(label)
 
 func _build_options_overlay() -> void:
@@ -145,7 +151,7 @@ func _build_options_overlay() -> void:
 	var title := Label.new()
 	title.text = "OPTIONS"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 28)
+	UiPresentation.apply_heading(title, 28)
 	layout.add_child(title)
 
 	_window_mode_option = _add_option_row(
@@ -182,11 +188,13 @@ func _build_options_overlay() -> void:
 
 	var cancel_button := Button.new()
 	cancel_button.text = "Cancel"
+	UiPresentation.apply_action_button_style(cancel_button, Color(0.74, 0.78, 0.84, 1.0))
 	cancel_button.pressed.connect(_on_options_cancelled)
 	buttons.add_child(cancel_button)
 
 	var apply_button := Button.new()
 	apply_button.text = "Apply"
+	UiPresentation.apply_action_button_style(apply_button, Color(0.34, 0.95, 0.52, 1.0))
 	apply_button.pressed.connect(_on_options_applied)
 	buttons.add_child(apply_button)
 
@@ -214,6 +222,7 @@ func _add_control_row(
 	label.text = label_text
 	label.custom_minimum_size = Vector2(150.0, 0.0)
 	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UiPresentation.apply_body_label(label, false, 14)
 	row.add_child(label)
 
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL

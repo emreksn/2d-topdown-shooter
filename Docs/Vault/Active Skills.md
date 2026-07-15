@@ -97,7 +97,9 @@ An Active Skill may be:
 - Chosen during the starter skill selection after the starter weapon is selected.
 - Bound to a weapon.
 - Purchased from a shop.
-- Dropped as a reward from [[Content]].
+- Dropped by monsters or as a reward from [[Content]].
+
+Dropped Active Skills are reviewed during post-wave item evaluation. Keeping a dropped skill equips it into an empty skill slot if possible, otherwise it replaces slot 1. Selling a dropped skill grants gold.
 
 ## Loadout rules
 

@@ -1,12 +1,21 @@
 class_name ItemPickup
 extends Node2D
 
+enum DropKind {
+	ITEM,
+	WEAPON,
+	ACTIVE_SKILL
+}
+
 @export_range(1.0, 1000.0, 1.0) var collection_distance: float = 28.0
 @export_range(1.0, 2000.0, 1.0) var attraction_speed: float = 320.0
 @export_range(0.0, 1000.0, 1.0) var initial_scatter: float = 36.0
 @export_range(0.1, 5.0, 0.05) var forced_collection_duration: float = 0.55
 
 var item: ItemDefinition
+var weapon_offer: WeaponOffer
+var active_skill: ActiveSkillDefinition
+var drop_kind: DropKind = DropKind.ITEM
 var target: Node2D
 var _velocity := Vector2.ZERO
 var _is_forced_collecting: bool = false
@@ -20,6 +29,26 @@ func _ready() -> void:
 
 func setup(drop_item: ItemDefinition, player: Node2D) -> void:
 	item = drop_item
+	weapon_offer = null
+	active_skill = null
+	drop_kind = DropKind.ITEM
+	_setup_target(player)
+
+func setup_weapon(drop_offer: WeaponOffer, player: Node2D) -> void:
+	item = null
+	weapon_offer = drop_offer
+	active_skill = null
+	drop_kind = DropKind.WEAPON
+	_setup_target(player)
+
+func setup_active_skill(drop_skill: ActiveSkillDefinition, player: Node2D) -> void:
+	item = null
+	weapon_offer = null
+	active_skill = drop_skill
+	drop_kind = DropKind.ACTIVE_SKILL
+	_setup_target(player)
+
+func _setup_target(player: Node2D) -> void:
 	target = player
 	_refresh_label()
 	queue_redraw()
@@ -90,7 +119,7 @@ func _draw() -> void:
 func _refresh_label() -> void:
 	if not is_instance_valid(_label):
 		return
-	_label.text = item.display_name if item != null else "Item"
+	_label.text = _get_display_name()
 	_label.add_theme_color_override("font_color", _get_rarity_color())
 
 func _get_pickup_range() -> float:
@@ -104,8 +133,7 @@ func _collect() -> void:
 	var evaluation_director := get_tree().get_first_node_in_group(
 		&"item_evaluation_director"
 	) as ItemEvaluationDirector
-	if is_instance_valid(evaluation_director) and item != null:
-		evaluation_director.queue_item(item)
+	if is_instance_valid(evaluation_director) and _queue_drop_for_evaluation(evaluation_director):
 		queue_free()
 		return
 	var inventory := target.get_node_or_null(
@@ -115,8 +143,44 @@ func _collect() -> void:
 		inventory.add_item(item)
 	queue_free()
 
+func _queue_drop_for_evaluation(evaluation_director: ItemEvaluationDirector) -> bool:
+	match drop_kind:
+		DropKind.ITEM:
+			if item == null:
+				return false
+			evaluation_director.queue_item(item)
+			return true
+		DropKind.WEAPON:
+			if weapon_offer == null:
+				return false
+			evaluation_director.queue_weapon_offer(weapon_offer)
+			return true
+		DropKind.ACTIVE_SKILL:
+			if active_skill == null:
+				return false
+			evaluation_director.queue_active_skill(active_skill)
+			return true
+	return false
+
+func _get_display_name() -> String:
+	match drop_kind:
+		DropKind.WEAPON:
+			return weapon_offer.get_display_name() if weapon_offer != null else "Weapon"
+		DropKind.ACTIVE_SKILL:
+			return active_skill.display_name if active_skill != null else "Skill"
+		_:
+			return item.display_name if item != null else "Item"
+
 func _get_rarity_color() -> Color:
 	if item == null:
+		if drop_kind == DropKind.WEAPON:
+			return (
+				UiPresentation.get_rarity_color(weapon_offer.rarity)
+				if weapon_offer != null
+				else Color.WHITE
+			)
+		if drop_kind == DropKind.ACTIVE_SKILL:
+			return Color(0.25, 0.85, 1.0, 1.0)
 		return Color.WHITE
 	match item.rarity:
 		ItemDefinition.Rarity.COMMON:

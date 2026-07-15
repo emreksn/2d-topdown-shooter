@@ -236,13 +236,21 @@ func spawn_bonus_enemy(
 	entry: EnemySpawnEntry,
 	spawn_position: Vector2,
 	additional_tags: Array[StringName] = [],
-	warning_duration: float = 0.0
+	warning_duration: float = 0.0,
+	rarity_roll: Dictionary = {},
+	reward_multiplier_override: float = -1.0
 ) -> bool:
 	if entry == null or entry.enemy_scene == null:
 		return false
 	var clamped_position := _clamp_to_arena(spawn_position)
 	if warning_duration <= 0.0:
-		return _spawn_enemy(entry, clamped_position, additional_tags)
+		return _spawn_enemy(
+			entry,
+			clamped_position,
+			additional_tags,
+			rarity_roll,
+			reward_multiplier_override
+		)
 
 	var indicators: Array[Node2D] = []
 	var indicator := _create_spawn_indicator(clamped_position)
@@ -254,8 +262,13 @@ func spawn_bonus_enemy(
 		"time_remaining": warning_duration,
 		"spawns": [{
 			"entry": entry,
-			"rarity_roll": _build_monster_rarity_roll(_get_forced_or_natural_rarity()),
-			"budget_cost": 0
+			"rarity_roll": (
+				rarity_roll
+				if not rarity_roll.is_empty()
+				else _build_monster_rarity_roll(_get_forced_or_natural_rarity())
+			),
+			"budget_cost": 0,
+			"reward_multiplier_override": reward_multiplier_override
 		}],
 		"positions": [clamped_position],
 		"indicators": indicators,
@@ -271,6 +284,14 @@ func get_monster_rarity_chances() -> Dictionary:
 		&"normal_upgrade_weights": _get_monster_rarity_upgrade_weights(MONSTER_RARITY_NORMAL)
 	}
 
+func get_bonus_spawn_position(additional_margin: float = 0.0) -> Vector2:
+	return _choose_spawn_position(additional_margin)
+
+func build_specific_monster_rarity_roll(rarity: int) -> Dictionary:
+	return _build_monster_rarity_roll(
+		clampi(rarity, MONSTER_RARITY_NORMAL, MONSTER_RARITY_RARE)
+	)
+
 func _finish_scheduling() -> void:
 	if not _is_spawning:
 		return
@@ -281,7 +302,8 @@ func _spawn_enemy(
 	entry: EnemySpawnEntry,
 	spawn_position: Vector2,
 	additional_tags: Array[StringName] = [],
-	rarity_roll: Dictionary = {}
+	rarity_roll: Dictionary = {},
+	reward_multiplier_override: float = -1.0
 ) -> bool:
 	var enemy := _acquire_enemy(entry.enemy_scene)
 	if enemy == null:
@@ -330,7 +352,11 @@ func _spawn_enemy(
 	if enemy.has_method("configure_spawn_reward"):
 		enemy.configure_spawn_reward(
 			entry.cost,
-			float(rarity_roll["reward_multiplier"]),
+			(
+				reward_multiplier_override
+				if reward_multiplier_override >= 0.0
+				else float(rarity_roll["reward_multiplier"])
+			),
 			_wave_number
 		)
 
@@ -543,7 +569,8 @@ func _spawn_planned_pack(
 			spawn["entry"],
 			positions[index],
 			additional_tags,
-			spawn["rarity_roll"]
+			spawn["rarity_roll"],
+			float(spawn.get("reward_multiplier_override", -1.0))
 		)
 
 func _create_spawn_indicator(spawn_position: Vector2) -> SpawnIndicator:

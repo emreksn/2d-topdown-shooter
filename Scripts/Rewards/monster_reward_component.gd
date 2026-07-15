@@ -9,9 +9,14 @@ signal item_drop_rolled(item: ItemDefinition, drop_position: Vector2)
 @export var item_pickup_scene: PackedScene
 @export var item_rarity_manager: ItemRarityManager
 @export var item_drop_pool: Array[ItemDefinition] = []
+@export var weapon_drop_pool: Array[WeaponDefinition] = []
+@export var active_skill_drop_pool: Array[ActiveSkillDefinition] = []
 @export_range(0.0, 1000.0, 0.5) var experience_per_spawn_cost: float = 5.0
 @export_range(0.0, 1000.0, 0.5) var gold_per_spawn_cost: float = 2.0
 @export_range(0.0, 100.0, 0.1) var item_drop_chance_per_spawn_cost: float = 2.0
+@export_range(0.0, 100.0, 0.1) var relic_drop_chance_per_spawn_cost: float = 0.35
+@export_range(0.0, 100.0, 0.1) var weapon_drop_chance_per_spawn_cost: float = 0.25
+@export_range(0.0, 100.0, 0.1) var active_skill_drop_chance_per_spawn_cost: float = 0.2
 @export_range(0.0, 1.0, 0.01) var experience_variance: float = 0.10
 @export_range(0.0, 1.0, 0.01) var gold_variance: float = 0.20
 @export_range(0, 20, 1) var maximum_item_drops_per_monster: int = 3
@@ -209,8 +214,11 @@ func _roll_item_drops(player: Node2D, player_stats: StatComponent) -> void:
 	):
 		return
 
-	var pool := _get_item_drop_pool()
-	if pool.is_empty():
+	var pool := _get_items_by_category(ItemDefinition.ItemCategory.ITEM)
+	var relic_pool := _get_items_by_category(ItemDefinition.ItemCategory.RELIC)
+	var weapon_pool := _get_weapon_drop_pool()
+	var skill_pool := _get_active_skill_drop_pool()
+	if pool.is_empty() and relic_pool.is_empty() and weapon_pool.is_empty() and skill_pool.is_empty():
 		return
 
 	var quantity_multiplier := (
@@ -236,6 +244,45 @@ func _roll_item_drops(player: Node2D, player_stats: StatComponent) -> void:
 		item_rarity_multiplier,
 		player,
 		inventory,
+		maximum_item_drops_per_monster
+	)
+	_grant_rolled_items(
+		relic_pool,
+		_roll_expected_count(
+			float(spawn_cost)
+			* relic_drop_chance_per_spawn_cost
+			/ 100.0
+			* quantity_multiplier
+			* monster_stats.get_stat(StatIds.MONSTER_RELIC_DROP_CHANCE_MULTIPLIER)
+		),
+		item_rarity_multiplier,
+		player,
+		inventory,
+		maximum_item_drops_per_monster
+	)
+	_grant_rolled_weapons(
+		weapon_pool,
+		_roll_expected_count(
+			float(spawn_cost)
+			* weapon_drop_chance_per_spawn_cost
+			/ 100.0
+			* quantity_multiplier
+			* monster_stats.get_stat(StatIds.MONSTER_WEAPON_DROP_CHANCE_MULTIPLIER)
+		),
+		item_rarity_multiplier,
+		player,
+		maximum_item_drops_per_monster
+	)
+	_grant_rolled_active_skills(
+		skill_pool,
+		_roll_expected_count(
+			float(spawn_cost)
+			* active_skill_drop_chance_per_spawn_cost
+			/ 100.0
+			* quantity_multiplier
+			* monster_stats.get_stat(StatIds.MONSTER_ACTIVE_SKILL_DROP_CHANCE_MULTIPLIER)
+		),
+		player,
 		maximum_item_drops_per_monster
 	)
 
@@ -297,6 +344,78 @@ func _spawn_item_pickup(item: ItemDefinition, player: Node2D) -> void:
 	pickup.global_position = (get_parent() as Node2D).global_position
 	pickup.setup(item, player)
 
+func _grant_rolled_weapons(
+	pool: Array[WeaponDefinition],
+	drop_count: int,
+	rarity_multiplier: float,
+	player: Node2D,
+	maximum_count: int = -1
+) -> int:
+	if pool.is_empty() or drop_count <= 0:
+		return 0
+	var wanted_count := drop_count
+	if maximum_count >= 0:
+		wanted_count = mini(wanted_count, maximum_count)
+	var granted := 0
+	for _index: int in range(wanted_count):
+		var rarity := item_rarity_manager.roll_rarity(
+			_random,
+			rarity_multiplier,
+			wave_number
+		)
+		if rarity > ItemDefinition.Rarity.LEGENDARY:
+			rarity = ItemDefinition.Rarity.LEGENDARY
+		var definition := pool[_random.randi_range(0, pool.size() - 1)]
+		var offer := WeaponOffer.create(definition, rarity, _random)
+		_spawn_weapon_pickup(offer, player)
+		granted += 1
+	return granted
+
+func _grant_rolled_active_skills(
+	pool: Array[ActiveSkillDefinition],
+	drop_count: int,
+	player: Node2D,
+	maximum_count: int = -1
+) -> int:
+	if pool.is_empty() or drop_count <= 0:
+		return 0
+	var wanted_count := drop_count
+	if maximum_count >= 0:
+		wanted_count = mini(wanted_count, maximum_count)
+	var granted := 0
+	for _index: int in range(wanted_count):
+		var skill := pool[_random.randi_range(0, pool.size() - 1)]
+		_spawn_active_skill_pickup(skill, player)
+		granted += 1
+	return granted
+
+func _spawn_weapon_pickup(offer: WeaponOffer, player: Node2D) -> void:
+	if offer == null or item_pickup_scene == null:
+		return
+	var pickup := _spawn_base_pickup() as ItemPickup
+	if pickup == null:
+		return
+	pickup.setup_weapon(offer, player)
+
+func _spawn_active_skill_pickup(skill: ActiveSkillDefinition, player: Node2D) -> void:
+	if skill == null or item_pickup_scene == null:
+		return
+	var pickup := _spawn_base_pickup() as ItemPickup
+	if pickup == null:
+		return
+	pickup.setup_active_skill(skill, player)
+
+func _spawn_base_pickup() -> ItemPickup:
+	var pickup := item_pickup_scene.instantiate() as ItemPickup
+	if pickup == null:
+		return null
+	var container := get_tree().get_first_node_in_group(&"drops_container")
+	if container == null:
+		container = get_tree().current_scene
+	container.add_child(pickup)
+	pickup.global_position = (get_parent() as Node2D).global_position
+	return pickup
+
 func _get_item_drop_pool() -> Array[ItemDefinition]:
 	if not item_drop_pool.is_empty():
 		return item_drop_pool
@@ -305,6 +424,33 @@ func _get_item_drop_pool() -> Array[ItemDefinition]:
 	) as ShopDirector
 	if is_instance_valid(shop_director):
 		return shop_director.shop_items
+	return []
+
+func _get_items_by_category(category: ItemDefinition.ItemCategory) -> Array[ItemDefinition]:
+	var result: Array[ItemDefinition] = []
+	for item in _get_item_drop_pool():
+		if item != null and item.category == category:
+			result.append(item)
+	return result
+
+func _get_weapon_drop_pool() -> Array[WeaponDefinition]:
+	if not weapon_drop_pool.is_empty():
+		return weapon_drop_pool
+	var shop_director := get_tree().get_first_node_in_group(
+		&"shop_director"
+	) as ShopDirector
+	if is_instance_valid(shop_director):
+		return shop_director.shop_weapons
+	return []
+
+func _get_active_skill_drop_pool() -> Array[ActiveSkillDefinition]:
+	if not active_skill_drop_pool.is_empty():
+		return active_skill_drop_pool
+	var skill_ui := get_tree().get_first_node_in_group(
+		&"starter_skill_choice_ui"
+	) as StarterSkillChoiceUI
+	if is_instance_valid(skill_ui):
+		return skill_ui.available_skills
 	return []
 
 func _get_wave_available_item_drop_pool() -> Array[ItemDefinition]:

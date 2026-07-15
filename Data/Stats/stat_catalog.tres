@@ -260,6 +260,27 @@ display_name = "Monster Item Rarity Multiplier"
 default_value = 1.0
 has_minimum = true
 
+[sub_resource type="Resource" id="Stat_monster_relic_drop_chance"]
+script = ExtResource("2_definition")
+id = &"monster_relic_drop_chance_multiplier"
+display_name = "Monster Relic Drop Chance Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_monster_weapon_drop_chance"]
+script = ExtResource("2_definition")
+id = &"monster_weapon_drop_chance_multiplier"
+display_name = "Monster Weapon Drop Chance Multiplier"
+default_value = 1.0
+has_minimum = true
+
+[sub_resource type="Resource" id="Stat_monster_skill_drop_chance"]
+script = ExtResource("2_definition")
+id = &"monster_active_skill_drop_chance_multiplier"
+display_name = "Monster Active Skill Drop Chance Multiplier"
+default_value = 1.0
+has_minimum = true
+
 [sub_resource type="Resource" id="Stat_shop_item_rarity"]
 script = ExtResource("2_definition")
 id = &"shop_item_rarity_multiplier"
@@ -341,4 +362,4 @@ display_as_percentage = true
 
 [resource]
 script = ExtResource("1_catalog")
-definitions = Array[ExtResource("2_definition")]([SubResource("Stat_max_health"), SubResource("Stat_move_speed"), SubResource("Stat_attack_rate"), SubResource("Stat_targeting_range"), SubResource("Stat_damage"), SubResource("Stat_physical_damage"), SubResource("Stat_elemental_damage"), SubResource("Stat_projectile_speed"), SubResource("Stat_projectile_pierce"), SubResource("Stat_projectile_fork"), SubResource("Stat_projectile_chain"), SubResource("Stat_projectile_chain_radius"), SubResource("Stat_area_of_effect"), SubResource("Stat_cooldown_duration"), SubResource("Stat_slow_chance"), SubResource("Stat_slow_magnitude"), SubResource("Stat_slow_duration"), SubResource("Stat_melee_damage"), SubResource("Stat_physical_res"), SubResource("Stat_elemental_res"), SubResource("Stat_max_physical_res"), SubResource("Stat_max_elemental_res"), SubResource("Stat_toughness"), SubResource("Stat_accuracy"), SubResource("Stat_physical_penetration"), SubResource("Stat_elemental_penetration"), SubResource("Stat_armour_penetration"), SubResource("Stat_armour"), SubResource("Stat_evasion"), SubResource("Stat_deflection"), SubResource("Stat_arcane_shield"), SubResource("Stat_arcane_start_speed"), SubResource("Stat_arcane_rate"), SubResource("Stat_effectiveness"), SubResource("Stat_experience"), SubResource("Stat_quantity"), SubResource("Stat_item_rarity"), SubResource("Stat_monster_item_rarity"), SubResource("Stat_shop_item_rarity"), SubResource("Stat_relic_chance"), SubResource("Stat_shop_relic_chance"), SubResource("Stat_shop_extra_offer_count"), SubResource("Stat_shop_reroll_cost"), SubResource("Stat_shop_free_reroll_chance"), SubResource("Stat_gold"), SubResource("Stat_monster_rarity"), SubResource("Stat_experience_gain"), SubResource("Stat_pickup_range"), SubResource("Stat_instant_pickup")])
+definitions = Array[ExtResource("2_definition")]([SubResource("Stat_max_health"), SubResource("Stat_move_speed"), SubResource("Stat_attack_rate"), SubResource("Stat_targeting_range"), SubResource("Stat_damage"), SubResource("Stat_physical_damage"), SubResource("Stat_elemental_damage"), SubResource("Stat_projectile_speed"), SubResource("Stat_projectile_pierce"), SubResource("Stat_projectile_fork"), SubResource("Stat_projectile_chain"), SubResource("Stat_projectile_chain_radius"), SubResource("Stat_area_of_effect"), SubResource("Stat_cooldown_duration"), SubResource("Stat_slow_chance"), SubResource("Stat_slow_magnitude"), SubResource("Stat_slow_duration"), SubResource("Stat_melee_damage"), SubResource("Stat_physical_res"), SubResource("Stat_elemental_res"), SubResource("Stat_max_physical_res"), SubResource("Stat_max_elemental_res"), SubResource("Stat_toughness"), SubResource("Stat_accuracy"), SubResource("Stat_physical_penetration"), SubResource("Stat_elemental_penetration"), SubResource("Stat_armour_penetration"), SubResource("Stat_armour"), SubResource("Stat_evasion"), SubResource("Stat_deflection"), SubResource("Stat_arcane_shield"), SubResource("Stat_arcane_start_speed"), SubResource("Stat_arcane_rate"), SubResource("Stat_effectiveness"), SubResource("Stat_experience"), SubResource("Stat_quantity"), SubResource("Stat_item_rarity"), SubResource("Stat_monster_item_rarity"), SubResource("Stat_monster_relic_drop_chance"), SubResource("Stat_monster_weapon_drop_chance"), SubResource("Stat_monster_skill_drop_chance"), SubResource("Stat_shop_item_rarity"), SubResource("Stat_relic_chance"), SubResource("Stat_shop_relic_chance"), SubResource("Stat_shop_extra_offer_count"), SubResource("Stat_shop_reroll_cost"), SubResource("Stat_shop_free_reroll_chance"), SubResource("Stat_gold"), SubResource("Stat_monster_rarity"), SubResource("Stat_experience_gain"), SubResource("Stat_pickup_range"), SubResource("Stat_instant_pickup")])

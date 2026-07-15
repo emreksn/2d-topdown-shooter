@@ -44,6 +44,8 @@ func _test_forced_rarity_packages() -> bool:
 		return false
 	if not _expect_reward_multiplier(uncommon, 1.35, "uncommon reward multiplier"):
 		return false
+	if not _expect_shader_amount(uncommon, "rarity_amount", 0.32, "uncommon rarity shader"):
+		return false
 
 	var rare := await _spawn_forced_enemy(
 		13,
@@ -70,6 +72,8 @@ func _test_forced_rarity_packages() -> bool:
 	if not _expect_stat(rare, StatIds.ARMOUR, 300.0, "rare base armour plus natural and armoured modifier"):
 		return false
 	if not _expect_reward_multiplier(rare, 2.0, "rare reward multiplier"):
+		return false
+	if not _expect_shader_amount(rare, "rarity_amount", 0.48, "rare rarity shader"):
 		return false
 
 	var early_rare := await _spawn_forced_enemy(
@@ -250,6 +254,21 @@ func _expect_reward_multiplier(enemy: Enemy, expected: float, label: String) -> 
 			"%s expected %f, got %f."
 			% [label, expected, rewards.rarity_reward_multiplier]
 		)
+	return true
+
+func _expect_shader_amount(
+	enemy: Enemy,
+	parameter_name: String,
+	expected: float,
+	label: String
+) -> bool:
+	var sprite := enemy.get_node("Sprite") as Sprite2D
+	var material := sprite.material as ShaderMaterial
+	if material == null:
+		return _fail("%s missing shader material." % label)
+	var actual := float(material.get_shader_parameter(parameter_name))
+	if not is_equal_approx(actual, expected):
+		return _fail("%s expected %f, got %f." % [label, expected, actual])
 	return true
 
 func _fail(message: String) -> bool:

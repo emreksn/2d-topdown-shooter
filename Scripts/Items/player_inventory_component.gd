@@ -46,12 +46,7 @@ func equip_relic(item: ItemDefinition) -> bool:
 	var slot: ItemDefinition.RelicSlot = item.relic_slot
 	var previous := active_relics.get(slot) as ItemDefinition
 	if previous == item:
-		items.append(item)
-		item_added.emit(item)
-		inventory_changed.emit()
 		return true
-	if previous != null:
-		items.append(previous)
 	active_relics[slot] = item
 	_apply_all_modifiers()
 	item_added.emit(item)

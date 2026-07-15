@@ -258,11 +258,19 @@ func _batch_collect_drops(drops: Array[Node]) -> void:
 
 		var item_pickup := drop as ItemPickup
 		if is_instance_valid(item_pickup):
-			if item_pickup.item != null:
-				if is_instance_valid(evaluation_director):
-					evaluation_director.queue_item(item_pickup.item)
-				elif is_instance_valid(inventory):
-					inventory.add_item(item_pickup.item)
+			if is_instance_valid(evaluation_director):
+				match item_pickup.drop_kind:
+					ItemPickup.DropKind.ITEM:
+						if item_pickup.item != null:
+							evaluation_director.queue_item(item_pickup.item)
+					ItemPickup.DropKind.WEAPON:
+						if item_pickup.weapon_offer != null:
+							evaluation_director.queue_weapon_offer(item_pickup.weapon_offer)
+					ItemPickup.DropKind.ACTIVE_SKILL:
+						if item_pickup.active_skill != null:
+							evaluation_director.queue_active_skill(item_pickup.active_skill)
+			elif is_instance_valid(inventory) and item_pickup.item != null:
+				inventory.add_item(item_pickup.item)
 			item_pickup.queue_free()
 			continue
 

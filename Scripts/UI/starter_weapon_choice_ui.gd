@@ -46,9 +46,15 @@ func _build_ui() -> void:
 
 	var title := Label.new()
 	title.text = "CHOOSE STARTING WEAPON"
-	title.add_theme_font_size_override("font_size", 24)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiPresentation.apply_heading(title, 26)
 	layout.add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "Pick the weapon that defines your opening build."
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiPresentation.apply_body_label(subtitle, true, 14)
+	layout.add_child(subtitle)
 
 	var scroll := ScrollContainer.new()
 	scroll.custom_minimum_size = Vector2(0.0, 310.0)
@@ -70,7 +76,7 @@ func _build_ui() -> void:
 			_choice_grid.add_child(_make_weapon_button(definition))
 
 func _resize_panel() -> void:
-	UiPresentation.resize_center_panel(_root_panel, Vector2(980.0, 470.0))
+	UiPresentation.resize_center_panel(_root_panel, Vector2(980.0, 540.0))
 
 func _should_show_choice() -> bool:
 	return (
@@ -87,7 +93,7 @@ func _show_choice() -> void:
 
 func _make_weapon_button(definition: WeaponDefinition) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(220.0, 140.0)
+	button.custom_minimum_size = Vector2(220.0, 150.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -96,10 +102,12 @@ func _make_weapon_button(definition: WeaponDefinition) -> Button:
 		ItemDefinition.Rarity.COMMON,
 		_random
 	)
-	button.text = "%s\n%s" % [
+	button.text = "%s\n\n%s" % [
 		definition.display_name,
 		offer.get_stat_display_text()
 	]
+	button.tooltip_text = offer.get_stat_display_text()
+	button.add_theme_font_size_override("font_size", 14)
 	UiPresentation.apply_rarity_button_style(
 		button,
 		ItemDefinition.Rarity.COMMON

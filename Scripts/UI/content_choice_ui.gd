@@ -6,7 +6,7 @@ extends CanvasLayer
 var _root_panel: PanelContainer
 var _title_label: Label
 var _choice_list: HBoxContainer
-var _desired_panel_size := Vector2(780.0, 360.0)
+var _desired_panel_size := Vector2(860.0, 410.0)
 
 func _ready() -> void:
 	layer = 28
@@ -44,7 +44,7 @@ func _build_ui() -> void:
 	_title_label = Label.new()
 	_title_label.text = "NEXT WAVE CONTENT"
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title_label.add_theme_font_size_override("font_size", 26)
+	UiPresentation.apply_heading(_title_label, 27)
 	layout.add_child(_title_label)
 
 	var scroller := ScrollContainer.new()
@@ -79,7 +79,7 @@ func _on_choices_changed(options: Array) -> void:
 
 func _make_choice_button(option: ContentOffer, index: int) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(230.0, 210.0)
+	button.custom_minimum_size = Vector2(250.0, 235.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	if option == null or option.content == null:
@@ -142,7 +142,7 @@ func _add_card_text(
 	title_label.text = title
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title_label.add_theme_font_size_override("font_size", 16)
+	UiPresentation.apply_heading(title_label, 17)
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout.add_child(title_label)
 
@@ -165,7 +165,7 @@ func _make_body_label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", 11)
+	UiPresentation.apply_body_label(label, false, 12)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	return label

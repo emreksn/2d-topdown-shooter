@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ContentDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Content/content_definition.gd" id="1_script"]
+[ext_resource type="Resource" path="res://Data/Waves/Enemies/charger_brute_boss_entry.tres" id="2_boss_entry"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"boss_encounter"
+display_name = "Boss Encounter"
+description = "Add a Charger Brute boss to the next wave."
+kind = 1
+boss_entry = ExtResource("2_boss_entry")
+boss_spawn_count = 1
+boss_spawn_delay = 2.0
+boss_warning_duration = 1.25
+boss_reward_multiplier = 20.0

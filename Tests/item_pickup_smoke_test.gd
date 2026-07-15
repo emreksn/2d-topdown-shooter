@@ -4,6 +4,8 @@ const STAT_CATALOG := preload("res://Data/Stats/stat_catalog.tres")
 const PLAYER_STATS := preload("res://Data/Stats/player_stats.tres")
 const ENEMY_STATS := preload("res://Data/Stats/enemy_stats.tres")
 const RUNNING_SHOES := preload("res://Data/Items/running_shoes.tres")
+const PISTOL := preload("res://Data/Weapons/pistol.tres")
+const DASH := preload("res://Data/ActiveSkills/dash.tres")
 const ITEM_PICKUP_SCENE := preload("res://Scenes/Rewards/item_pickup.tscn")
 
 func _init() -> void:
@@ -29,6 +31,18 @@ func _init() -> void:
 	inventory.name = "PlayerInventoryComponent"
 	inventory.stat_component = player_stats
 	player.add_child(inventory)
+
+	var weapon_loadout := WeaponLoadoutComponent.new()
+	weapon_loadout.name = "WeaponLoadoutComponent"
+	var weapon_mount := Node2D.new()
+	weapon_mount.name = "WeaponMount"
+	player.add_child(weapon_mount)
+	weapon_loadout.weapon_mount = weapon_mount
+	player.add_child(weapon_loadout)
+
+	var skill_loadout := ActiveSkillLoadoutComponent.new()
+	skill_loadout.name = "ActiveSkillLoadoutComponent"
+	player.add_child(skill_loadout)
 
 	var monster := Node2D.new()
 	monster.name = "Monster"
@@ -71,6 +85,40 @@ func _init() -> void:
 				)
 			elif inventory.items[0] != RUNNING_SHOES:
 				failures.append("Expected collected pickup to add Running Shoes.")
+
+	var evaluation := ItemEvaluationDirector.new()
+	evaluation.inventory = inventory
+	evaluation.progression = PlayerProgressionComponent.new()
+	evaluation.weapon_loadout = weapon_loadout
+	evaluation.active_skill_loadout = skill_loadout
+	root.add_child(evaluation)
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var weapon_pickup := ITEM_PICKUP_SCENE.instantiate() as ItemPickup
+	drops.add_child(weapon_pickup)
+	weapon_pickup.setup_weapon(
+		WeaponOffer.create(PISTOL, ItemDefinition.Rarity.COMMON, rng),
+		player
+	)
+	weapon_pickup.collect_for(player)
+	await create_timer(weapon_pickup.forced_collection_duration + 0.1).timeout
+	evaluation.begin_evaluation(1)
+	if not evaluation.keep_current():
+		failures.append("Expected weapon drop evaluation to equip a weapon.")
+	elif weapon_loadout.get_equipped_count() != 1:
+		failures.append("Expected kept weapon drop to enter weapon loadout.")
+
+	var skill_pickup := ITEM_PICKUP_SCENE.instantiate() as ItemPickup
+	drops.add_child(skill_pickup)
+	skill_pickup.setup_active_skill(DASH, player)
+	skill_pickup.collect_for(player)
+	await create_timer(skill_pickup.forced_collection_duration + 0.1).timeout
+	evaluation.begin_evaluation(1)
+	if not evaluation.keep_current():
+		failures.append("Expected skill drop evaluation to equip a skill.")
+	elif skill_loadout.get_skill(0) != DASH:
+		failures.append("Expected kept skill drop to enter active skill slot 1.")
 
 	if failures.is_empty():
 		print("item_pickup_smoke_test: PASS")

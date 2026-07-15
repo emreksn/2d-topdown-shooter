@@ -176,6 +176,9 @@ static func _is_fractional_multiplier_stat(stat_id: StringName) -> bool:
 		StatIds.ITEM_QUANTITY_MULTIPLIER,
 		StatIds.ITEM_RARITY_MULTIPLIER,
 		StatIds.MONSTER_ITEM_RARITY_MULTIPLIER,
+		StatIds.MONSTER_RELIC_DROP_CHANCE_MULTIPLIER,
+		StatIds.MONSTER_WEAPON_DROP_CHANCE_MULTIPLIER,
+		StatIds.MONSTER_ACTIVE_SKILL_DROP_CHANCE_MULTIPLIER,
 		StatIds.SHOP_ITEM_RARITY_MULTIPLIER,
 		StatIds.RELIC_CHANCE_MULTIPLIER,
 		StatIds.SHOP_RELIC_CHANCE_MULTIPLIER,
@@ -258,6 +261,12 @@ static func _get_stat_display_name(stat_id: StringName) -> String:
 			return "item rarity"
 		StatIds.MONSTER_ITEM_RARITY_MULTIPLIER:
 			return "monster item rarity"
+		StatIds.MONSTER_RELIC_DROP_CHANCE_MULTIPLIER:
+			return "monster relic drops"
+		StatIds.MONSTER_WEAPON_DROP_CHANCE_MULTIPLIER:
+			return "monster weapon drops"
+		StatIds.MONSTER_ACTIVE_SKILL_DROP_CHANCE_MULTIPLIER:
+			return "monster skill drops"
 		StatIds.SHOP_ITEM_RARITY_MULTIPLIER:
 			return "shop item rarity"
 		StatIds.RELIC_CHANCE_MULTIPLIER:

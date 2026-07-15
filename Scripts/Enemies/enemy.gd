@@ -21,8 +21,10 @@ enum MonsterRarity {
 @export_range(0.0, 20.0, 0.5) var walk_squash_transition_speed: float = 8.0
 @export_category("Feedback")
 @export var hit_flash_color := Color(1.0, 1.0, 1.0, 1.0)
+@export var uncommon_shader_color := Color(0.35, 0.95, 0.55, 1.0)
+@export var rare_shader_color := Color(1.0, 0.72, 0.18, 1.0)
+@export var slow_shader_color := Color(0.22, 0.78, 1.0, 1.0)
 @export_range(0.01, 0.5, 0.01) var hit_flash_duration: float = 0.08
-@export_range(0.0, 80.0, 1.0) var hit_bump_distance: float = 10.0
 @export_range(0.01, 1.0, 0.01) var death_pop_duration: float = 0.22
 
 var spawn_tags: Array[StringName] = [&"monster"]
@@ -121,6 +123,8 @@ func reset_for_pool_spawn() -> void:
 	if is_instance_valid(_walk_material):
 		_walk_material.set_shader_parameter("movement_amount", 0.0)
 		_walk_material.set_shader_parameter("flash_amount", 0.0)
+		_walk_material.set_shader_parameter("slow_amount", 0.0)
+		_apply_rarity_shader()
 
 func _reset_runtime_modifiers() -> void:
 	if (
@@ -178,6 +182,7 @@ func configure_monster_rarity(
 	monster_rarity = rarity
 	monster_rarity_display_name = display_name
 	rare_modifier_names = modifier_names.duplicate()
+	_apply_rarity_shader()
 
 func _on_mouse_entered() -> void:
 	if _is_dying:
@@ -213,7 +218,16 @@ func _physics_process(delta: float) -> void:
 		if is_instance_valid(stat_component)
 		else movement_speed
 	)
-	velocity = direction.normalized() * resolved_speed
+	var speed_multiplier := 1.0
+	if (
+		is_instance_valid(movement_behavior)
+		and movement_behavior.has_method("get_speed_multiplier")
+	):
+		speed_multiplier = maxf(
+			float(movement_behavior.get_speed_multiplier(self, target, delta)),
+			0.0
+		)
+	velocity = direction.normalized() * resolved_speed * speed_multiplier
 	move_and_slide()
 	_update_walk_squash(delta, resolved_speed)
 
@@ -230,6 +244,10 @@ func _setup_walk_squash() -> void:
 	_walk_material.set_shader_parameter("walk_speed", walk_squash_rate)
 	_walk_material.set_shader_parameter("flash_color", hit_flash_color)
 	_walk_material.set_shader_parameter("flash_amount", 0.0)
+	_walk_material.set_shader_parameter("slow_color", slow_shader_color)
+	_walk_material.set_shader_parameter("slow_amount", 0.0)
+	_apply_rarity_shader()
+	_connect_status_visuals()
 
 func _update_walk_squash(delta: float, resolved_speed: float) -> void:
 	if not is_instance_valid(_walk_material):
@@ -257,7 +275,6 @@ func _on_damaged(_amount: float, source: Node) -> void:
 	if _is_dying:
 		return
 	_play_hit_flash()
-	_play_hit_bump(source)
 
 func _on_died(_source: Node) -> void:
 	if _is_dying:
@@ -279,25 +296,6 @@ func _play_hit_flash() -> void:
 		_set_flash_amount,
 		1.0,
 		0.0,
-		hit_flash_duration
-	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
-func _play_hit_bump(source: Node) -> void:
-	if hit_bump_distance <= 0.0:
-		return
-	var source_node := source as Node2D
-	if not is_instance_valid(source_node):
-		return
-	var direction := source_node.global_position.direction_to(global_position)
-	if direction.is_zero_approx():
-		return
-	var return_position := position
-	position += direction * hit_bump_distance
-	var bump_tween := create_tween()
-	bump_tween.tween_property(
-		self,
-		"position",
-		return_position,
 		hit_flash_duration
 	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
@@ -335,6 +333,35 @@ func _play_death_pop() -> void:
 func _set_flash_amount(amount: float) -> void:
 	if is_instance_valid(_walk_material):
 		_walk_material.set_shader_parameter("flash_amount", amount)
+
+func _apply_rarity_shader() -> void:
+	if not is_instance_valid(_walk_material):
+		return
+	match monster_rarity:
+		MonsterRarity.UNCOMMON:
+			_walk_material.set_shader_parameter("rarity_color", uncommon_shader_color)
+			_walk_material.set_shader_parameter("rarity_amount", 0.32)
+		MonsterRarity.RARE:
+			_walk_material.set_shader_parameter("rarity_color", rare_shader_color)
+			_walk_material.set_shader_parameter("rarity_amount", 0.48)
+		_:
+			_walk_material.set_shader_parameter("rarity_color", Color.WHITE)
+			_walk_material.set_shader_parameter("rarity_amount", 0.0)
+
+func _connect_status_visuals() -> void:
+	var statuses := get_node_or_null("StatusEffectComponent") as StatusEffectComponent
+	if not is_instance_valid(statuses):
+		return
+	if not statuses.slow_changed.is_connected(_on_slow_changed):
+		statuses.slow_changed.connect(_on_slow_changed)
+
+func _on_slow_changed(magnitude: float, _remaining: float) -> void:
+	if not is_instance_valid(_walk_material):
+		return
+	_walk_material.set_shader_parameter(
+		"slow_amount",
+		clampf(magnitude / StatusEffectComponent.MAXIMUM_SLOW_MAGNITUDE, 0.0, 1.0)
+	)
 
 func _disable_combat_collision() -> void:
 	set_physics_process(false)

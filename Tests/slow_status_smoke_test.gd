@@ -29,10 +29,14 @@ func _test_slow_reduces_movement_stat() -> bool:
 	var slowed_speed := stats.get_stat(StatIds.MOVEMENT_SPEED)
 	if not is_equal_approx(slowed_speed, base_speed * 0.6):
 		return _fail("40% Slow did not apply as MORE movement speed reduction.")
+	if not _expect_slow_shader_amount(enemy, 40.0 / 70.0, "slow shader active amount"):
+		return false
 
 	await create_timer(1.1).timeout
 	if not is_equal_approx(stats.get_stat(StatIds.MOVEMENT_SPEED), base_speed):
 		return _fail("Slow movement modifier did not expire.")
+	if not _expect_slow_shader_amount(enemy, 0.0, "slow shader expired amount"):
+		return false
 
 	world.queue_free()
 	await process_frame
@@ -98,6 +102,20 @@ func _make_packet(amount: float) -> DamagePacket:
 		[&"attack", &"projectile"],
 		null
 	)
+
+func _expect_slow_shader_amount(
+	enemy: Enemy,
+	expected: float,
+	label: String
+) -> bool:
+	var sprite := enemy.get_node("Sprite") as Sprite2D
+	var material := sprite.material as ShaderMaterial
+	if material == null:
+		return _fail("%s missing shader material." % label)
+	var actual := float(material.get_shader_parameter("slow_amount"))
+	if absf(actual - expected) > 0.001:
+		return _fail("%s expected %f, got %f." % [label, expected, actual])
+	return true
 
 func _fail(message: String) -> bool:
 	push_error(message)

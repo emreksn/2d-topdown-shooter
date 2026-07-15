@@ -103,6 +103,10 @@
 [ext_resource type="Resource" path="res://Data/Items/phase_needle.tres" id="103_phase_needle"]
 [ext_resource type="Resource" path="res://Data/Items/null_shard.tres" id="104_null_shard"]
 [ext_resource type="Resource" path="res://Data/Items/sundering_gauge.tres" id="105_sundering_gauge"]
+[ext_resource type="Script" path="res://Scripts/Content/boss_director.gd" id="106_boss_director"]
+[ext_resource type="Resource" path="res://Data/Waves/Enemies/charger_brute_boss_entry.tres" id="107_boss_entry"]
+[ext_resource type="Resource" path="res://Data/Content/boss_encounter.tres" id="108_boss_content"]
+[ext_resource type="Script" path="res://Scripts/UI/boss_health_bar_ui.gd" id="109_boss_health_ui"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape_arena_horizontal"]
 size = Vector2(1640, 40)
@@ -195,13 +199,13 @@ position = Vector2(390, 330)
 [node name="RuntimeModifierRegistry" type="Node" parent="Systems" unique_id=468061407 groups=["runtime_modifier_registry"]]
 script = ExtResource("10_registry")
 
-[node name="SpawnDirector" type="Node" parent="Systems" unique_id=423616906]
+[node name="SpawnDirector" type="Node" parent="Systems" unique_id=423616906 groups=["spawn_director"]]
 script = ExtResource("2_spawn")
 spawn_indicator_scene = ExtResource("9_indicator")
 
 [node name="ContentManager" type="Node" parent="Systems" groups=["content_manager"]]
 script = ExtResource("45_content_manager")
-available_content = Array[ExtResource("48_content_definition")]([ExtResource("47_rift_content")])
+available_content = Array[ExtResource("48_content_definition")]([ExtResource("47_rift_content"), ExtResource("108_boss_content")])
 available_variants = Array[ExtResource("54_content_variant_definition")]([ExtResource("49_stable_content"), ExtResource("50_prosperous_content"), ExtResource("51_blessed_content"), ExtResource("52_bountiful_content"), ExtResource("53_infested_content")])
 available_extra_modifiers = Array[ExtResource("67_content_extra_modifier_definition")]([ExtResource("55_golden_wake"), ExtResource("56_bright_wake"), ExtResource("57_lucky_wake"), ExtResource("58_crowded_wake"), ExtResource("59_hardened_cache"), ExtResource("60_painful_lessons"), ExtResource("61_frantic_pack"), ExtResource("62_gilded_lessons"), ExtResource("63_heavy_hoard"), ExtResource("64_violent_abundance"), ExtResource("65_crowded_treasury"), ExtResource("66_pressed_offering")])
 extra_modifier_count = 1
@@ -218,6 +222,12 @@ wave_definitions = Array[ExtResource("8_wave_definition")]([ExtResource("4_wave_
 script = ExtResource("11_rift_director")
 portal_scene = ExtResource("12_rift_portal")
 
+[node name="BossDirector" type="Node" parent="Systems"]
+script = ExtResource("106_boss_director")
+wave_director = NodePath("../WaveDirector")
+spawn_director = NodePath("../SpawnDirector")
+default_boss_entry = ExtResource("107_boss_entry")
+
 [node name="LevelUpDirector" type="Node" parent="Systems" groups=["level_up_director"]]
 script = ExtResource("43_level_up_director")
 progression = NodePath("../../World/Actors/Player/PlayerProgressionComponent")
@@ -227,6 +237,8 @@ player_stats = NodePath("../../World/Actors/Player/StatComponent")
 script = ExtResource("68_item_evaluation_director")
 inventory = NodePath("../../World/Actors/Player/PlayerInventoryComponent")
 progression = NodePath("../../World/Actors/Player/PlayerProgressionComponent")
+weapon_loadout = NodePath("../../World/Actors/Player/WeaponLoadoutComponent")
+active_skill_loadout = NodePath("../../World/Actors/Player/ActiveSkillLoadoutComponent")
 
 [node name="ShopDirector" type="Node" parent="Systems" groups=["shop_director"]]
 script = ExtResource("13_shop_director")
@@ -255,6 +267,10 @@ evaluation_director = NodePath("../Systems/ItemEvaluationDirector")
 script = ExtResource("46_content_ui")
 content_manager = NodePath("../Systems/ContentManager")
 
+[node name="BossHealthBarUI" type="CanvasLayer" parent="."]
+script = ExtResource("109_boss_health_ui")
+spawn_director = NodePath("../Systems/SpawnDirector")
+
 [node name="ShopInventoryUI" type="CanvasLayer" parent="."]
 script = ExtResource("14_shop_ui")
 wave_director = NodePath("../Systems/WaveDirector")
@@ -268,7 +284,7 @@ script = ExtResource("72_starter_weapon_ui")
 weapon_loadout = NodePath("../World/Actors/Player/WeaponLoadoutComponent")
 starter_weapons = Array[ExtResource("73_pistol_weapon")]([ExtResource("73_pistol_weapon"), ExtResource("87_pistol_slow"), ExtResource("88_pistol_fork"), ExtResource("89_pistol_chain"), ExtResource("74_machine_gun_weapon"), ExtResource("75_shotgun_weapon"), ExtResource("86_wand_weapon"), ExtResource("76_op_test_pistol")])
 
-[node name="StarterSkillChoiceUI" type="CanvasLayer" parent="."]
+[node name="StarterSkillChoiceUI" type="CanvasLayer" parent="." groups=["starter_skill_choice_ui"]]
 script = ExtResource("90_starter_skill_ui")
 active_skill_loadout = NodePath("../World/Actors/Player/ActiveSkillLoadoutComponent")
 weapon_loadout = NodePath("../World/Actors/Player/WeaponLoadoutComponent")

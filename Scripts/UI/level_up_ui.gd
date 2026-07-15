@@ -5,8 +5,9 @@ extends CanvasLayer
 
 var _root_panel: PanelContainer
 var _title_label: Label
+var _subtitle_label: Label
 var _choice_list: HBoxContainer
-var _desired_panel_size := Vector2(720.0, 340.0)
+var _desired_panel_size := Vector2(820.0, 390.0)
 
 func _ready() -> void:
 	layer = 30
@@ -44,8 +45,14 @@ func _build_ui() -> void:
 	_title_label = Label.new()
 	_title_label.text = "LEVEL UP"
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title_label.add_theme_font_size_override("font_size", 26)
+	UiPresentation.apply_heading(_title_label, 28)
 	layout.add_child(_title_label)
+
+	_subtitle_label = Label.new()
+	_subtitle_label.text = "Choose one permanent upgrade."
+	_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiPresentation.apply_body_label(_subtitle_label, true, 14)
+	layout.add_child(_subtitle_label)
 
 	_choice_list = HBoxContainer.new()
 	_choice_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -66,8 +73,10 @@ func _on_choices_changed(
 ) -> void:
 	_root_panel.visible = true
 	_title_label.text = "LEVEL UP"
+	_subtitle_label.text = "Choose one permanent upgrade."
 	if pending_count > 1:
 		_title_label.text = "LEVEL UP  (%d queued)" % pending_count
+		_subtitle_label.text = "Choose now. Remaining upgrades will follow."
 	_clear_choices()
 	for index: int in range(options.size()):
 		_choice_list.add_child(_make_choice_button(options[index], index))
@@ -76,13 +85,15 @@ func _make_choice_button(option: LevelUpOption, index: int) -> Button:
 	var button := Button.new()
 	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.custom_minimum_size = Vector2(210.0, 150.0)
+	button.custom_minimum_size = Vector2(240.0, 190.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	button.text = "%s\n%s" % [
+	button.text = "%s\n\n%s" % [
 		ItemDefinition.get_rarity_name(option.rarity),
 		option.get_display_text()
 	]
+	button.tooltip_text = option.get_display_text()
+	button.add_theme_font_size_override("font_size", 15)
 	UiPresentation.apply_rarity_button_style(button, option.rarity)
 	button.pressed.connect(_on_choice_pressed.bind(index))
 	return button

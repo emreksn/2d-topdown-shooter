@@ -4,6 +4,10 @@ const STAT_CATALOG := preload("res://Data/Stats/stat_catalog.tres")
 const PLAYER_STATS := preload("res://Data/Stats/player_stats.tres")
 const ENEMY_STATS := preload("res://Data/Stats/enemy_stats.tres")
 const RUNNING_SHOES := preload("res://Data/Items/running_shoes.tres")
+const HEAD_TAKER := preload("res://Data/Items/head_taker_crown.tres")
+const IRONWOOD := preload("res://Data/Items/ironwood_icon.tres")
+const PISTOL := preload("res://Data/Weapons/pistol.tres")
+const DASH := preload("res://Data/ActiveSkills/dash.tres")
 const BOUNTIFUL := preload("res://Data/Content/Variants/bountiful.tres")
 
 func _init() -> void:
@@ -89,6 +93,44 @@ func _init() -> void:
 		)
 	elif inventory.items[0] != RUNNING_SHOES:
 		failures.append("Expected guaranteed item drop to be Running Shoes.")
+
+	var before_relic_inventory_count := inventory.items.size()
+	inventory.add_item(HEAD_TAKER)
+	inventory.add_item(IRONWOOD)
+	if inventory.items.size() != before_relic_inventory_count:
+		failures.append("Replacing an active relic should not store old relics.")
+	if inventory.get_active_relic(ItemDefinition.RelicSlot.COMBAT) != IRONWOOD:
+		failures.append("New relic should replace the active relic in its slot.")
+
+	var weapon_skill_rewards := MonsterRewardComponent.new()
+	weapon_skill_rewards.monster_stats = monster_stats
+	weapon_skill_rewards.item_pickup_scene = load("res://Scenes/Rewards/item_pickup.tscn")
+	weapon_skill_rewards.item_drop_pool = []
+	weapon_skill_rewards.weapon_drop_pool = [PISTOL]
+	weapon_skill_rewards.active_skill_drop_pool = [DASH]
+	weapon_skill_rewards.item_drop_chance_per_spawn_cost = 0.0
+	weapon_skill_rewards.relic_drop_chance_per_spawn_cost = 0.0
+	weapon_skill_rewards.weapon_drop_chance_per_spawn_cost = 100.0
+	weapon_skill_rewards.active_skill_drop_chance_per_spawn_cost = 100.0
+	monster.add_child(weapon_skill_rewards)
+	weapon_skill_rewards.configure(1, 1.0, 1)
+
+	var drops := Node2D.new()
+	drops.add_to_group(&"drops_container")
+	root.add_child(drops)
+	weapon_skill_rewards._roll_item_drops(player, player_stats)
+	if drops.get_child_count() != 2:
+		failures.append("Expected one weapon and one skill pickup from forced drop rolls.")
+	else:
+		var kinds := {}
+		for child in drops.get_children():
+			var pickup := child as ItemPickup
+			if pickup != null:
+				kinds[pickup.drop_kind] = true
+		if not kinds.has(ItemPickup.DropKind.WEAPON):
+			failures.append("Forced drop rolls did not create a weapon pickup.")
+		if not kinds.has(ItemPickup.DropKind.ACTIVE_SKILL):
+			failures.append("Forced drop rolls did not create an active skill pickup.")
 
 	if failures.is_empty():
 		print("drop_roll_smoke_test: PASS")

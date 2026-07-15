@@ -1,0 +1,53 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/enemy.tscn" id="1_base"]
+[ext_resource type="Script" path="res://Scripts/Enemies/Bosses/charger_brute_behavior.gd" id="2_behavior"]
+[ext_resource type="Resource" path="res://Data/Stats/charger_brute_boss_stats.tres" id="3_profile"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape_boss"]
+size = Vector2(88, 88)
+
+[sub_resource type="CircleShape2D" id="CircleShape_contact"]
+radius = 58.0
+
+[sub_resource type="Gradient" id="Gradient_telegraph"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.1, 0.02, 0.85, 1, 0.75, 0.1, 0)
+
+[node name="ChargerBruteBoss" instance=ExtResource("1_base")]
+modulate = Color(0.9, 0.18, 0.12, 1)
+movement_behavior = NodePath("MovementBehavior")
+targeting_component = NodePath("TargetingComponent")
+walk_squash_strength = 0.04
+walk_squash_rate = 5.0
+
+[node name="Sprite" parent="." index="0"]
+scale = Vector2(0.88, 0.88)
+
+[node name="Collision" parent="." index="1"]
+shape = SubResource("RectangleShape_boss")
+
+[node name="StatComponent" parent="." index="2"]
+base_profile = ExtResource("3_profile")
+
+[node name="ContactDamageComponent" parent="." index="5"]
+hit_interval = 0.35
+
+[node name="Collision" parent="ContactDamageComponent" index="0"]
+shape = SubResource("CircleShape_contact")
+
+[node name="ChargeTelegraph" type="Line2D" parent="." index="7"]
+visible = false
+z_index = -1
+width = 34.0
+gradient = SubResource("Gradient_telegraph")
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="MovementBehavior" type="Node" parent="." index="8"]
+script = ExtResource("2_behavior")
+telegraph_path = NodePath("../ChargeTelegraph")
+
+[node name="Collision" parent="Hurtbox" index="0"]
+shape = SubResource("RectangleShape_boss")

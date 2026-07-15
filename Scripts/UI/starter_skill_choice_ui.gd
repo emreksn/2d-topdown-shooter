@@ -57,13 +57,13 @@ func _build_ui() -> void:
 	margin.add_child(layout)
 
 	_title_label = Label.new()
-	_title_label.add_theme_font_size_override("font_size", 24)
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiPresentation.apply_heading(_title_label, 26)
 	layout.add_child(_title_label)
 
 	_summary_label = Label.new()
-	_summary_label.add_theme_font_size_override("font_size", 14)
 	_summary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiPresentation.apply_body_label(_summary_label, true, 14)
 	layout.add_child(_summary_label)
 
 	_choice_row = HBoxContainer.new()
@@ -72,7 +72,7 @@ func _build_ui() -> void:
 	layout.add_child(_choice_row)
 
 func _resize_panel() -> void:
-	UiPresentation.resize_center_panel(_root_panel, Vector2(760.0, 300.0))
+	UiPresentation.resize_center_panel(_root_panel, Vector2(820.0, 340.0))
 
 func _on_weapon_loadout_changed() -> void:
 	_queue_show_if_ready()
@@ -124,18 +124,20 @@ func _refresh_choices() -> void:
 
 func _make_skill_button(skill: ActiveSkillDefinition) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(220.0, 140.0)
+	button.custom_minimum_size = Vector2(240.0, 160.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	var unavailable_reason := _get_unavailable_reason(skill)
 	button.disabled = not unavailable_reason.is_empty()
-	button.text = "%s\n%s\n%s" % [
+	button.text = "%s\nCooldown %.1fs\n%s" % [
 		skill.display_name,
-		"Cooldown %.1fs" % skill.cooldown_duration,
+		skill.cooldown_duration,
 		_get_skill_requirement_text(skill, unavailable_reason)
 	]
+	button.tooltip_text = button.text
+	button.add_theme_font_size_override("font_size", 14)
 	var color := Color(0.12, 0.78, 0.95, 1.0)
 	if button.disabled:
 		color = Color(0.34, 0.36, 0.4, 1.0)

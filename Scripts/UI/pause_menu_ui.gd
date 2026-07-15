@@ -51,7 +51,7 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "PAUSED"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 30)
+	UiPresentation.apply_heading(title, 30)
 	layout.add_child(title)
 
 	var body := HBoxContainer.new()
@@ -67,16 +67,19 @@ func _build_ui() -> void:
 
 	var resume_button := Button.new()
 	resume_button.text = "Resume"
+	UiPresentation.apply_action_button_style(resume_button, Color(0.34, 0.95, 0.52, 1.0))
 	resume_button.pressed.connect(_close_pause_menu)
 	menu.add_child(resume_button)
 
 	var stats_button := Button.new()
 	stats_button.text = "Stats"
 	stats_button.disabled = true
+	UiPresentation.apply_action_button_style(stats_button, Color(0.52, 0.72, 1.0, 1.0))
 	menu.add_child(stats_button)
 
 	var quit_button := Button.new()
 	quit_button.text = "Main Menu"
+	UiPresentation.apply_action_button_style(quit_button, Color(1.0, 0.42, 0.42, 1.0))
 	quit_button.pressed.connect(_go_to_main_menu)
 	menu.add_child(quit_button)
 
@@ -92,8 +95,8 @@ func _build_ui() -> void:
 
 	var stats_title := Label.new()
 	stats_title.text = "Stats"
-	stats_title.add_theme_font_size_override("font_size", 22)
 	stats_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiPresentation.apply_heading(stats_title, 22)
 	stats_header.add_child(stats_title)
 
 	_modified_only = CheckBox.new()
@@ -126,7 +129,7 @@ func _add_header_label(parent: Control, text: String, width: float) -> void:
 	var label := Label.new()
 	label.text = text
 	label.custom_minimum_size = Vector2(width, 0.0)
-	label.add_theme_font_size_override("font_size", 14)
+	UiPresentation.apply_body_label(label, true, 14)
 	parent.add_child(label)
 
 func _toggle_pause_menu() -> void:

@@ -136,8 +136,17 @@ Forked projectile damage is handled through a `MORE` damage modifier with the `f
 
 ## Monster drops
 
-Monsters can now roll item drops on death. The monster item pool can contain both normal Items and Relics, and both use the same item-drop chance. Rolled drops appear as visible world pickups during the wave.
+Monsters can now roll drops on death. The monster drop model can produce normal Items, Relics, Weapons, and Active Skills. Rolled drops appear as visible world pickups during the wave.
 
-When item drops are collected, they are queued for post-wave item evaluation instead of immediately entering the inventory. After wave auto-collect finishes, the player reviews each dropped item or Relic before level-up choices and shop.
+When drops are collected, they are queued for post-wave evaluation instead of immediately entering the inventory. After wave auto-collect finishes, the player reviews each dropped Item, Relic, Weapon, or Active Skill before level-up choices and shop.
 
-Monster drops use the current shop item pool as a fallback pool until a dedicated monster drop pool is authored.
+Relic drops are not stored in the normal item inventory. Keeping a Relic equips it into its slot, replacing the current active Relic in that slot if one is already equipped. Selling a dropped Relic grants gold instead.
+
+Monster item and relic drops use the current shop item pool as a fallback pool until a dedicated monster drop pool is authored. Monster weapon drops use the current shop weapon pool as a fallback pool. Monster Active Skill drops use the starter skill pool as a fallback pool.
+
+Current monster drop chance stats:
+
+- `monster_item_rarity_multiplier`: increases the rarity of dropped Items, Relics, and Weapons.
+- `monster_relic_drop_chance_multiplier`: increases chance to drop Relics.
+- `monster_weapon_drop_chance_multiplier`: increases chance to drop Weapons.
+- `monster_active_skill_drop_chance_multiplier`: increases chance to drop Active Skills.

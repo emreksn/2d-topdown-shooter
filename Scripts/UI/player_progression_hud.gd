@@ -8,6 +8,10 @@ extends Control
 @onready var experience_label: Label = %ExperienceLabel
 
 func _ready() -> void:
+	UiPresentation.apply_heading(gold_label, 16)
+	gold_label.add_theme_color_override("font_color", UiPresentation.GOLD)
+	UiPresentation.apply_body_label(experience_label, false, 12)
+	UiPresentation.apply_progress_bar_style(experience_bar, Color(0.28, 0.62, 1.0, 1.0))
 	if not is_instance_valid(progression):
 		progression = _find_progression()
 	if not is_instance_valid(progression):

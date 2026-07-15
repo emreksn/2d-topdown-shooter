@@ -1,6 +1,8 @@
 class_name StatusEffectComponent
 extends Node
 
+signal slow_changed(magnitude: float, remaining: float)
+
 const SLOW_SOURCE_ID := &"status:slow"
 const MAXIMUM_SLOW_MAGNITUDE := 70.0
 const MAXIMUM_ACTION_SLOW := 40.0
@@ -30,6 +32,7 @@ func apply_slow(magnitude: float, duration: float) -> void:
 	)
 	_slow_remaining = maxf(_slow_remaining, duration)
 	_refresh_slow_modifier()
+	slow_changed.emit(get_slow_magnitude(), _slow_remaining)
 
 func get_slow_magnitude() -> float:
 	return _slow_magnitude if _slow_remaining > 0.0 else 0.0
@@ -63,6 +66,7 @@ func _clear_slow() -> void:
 	_slow_remaining = 0.0
 	if is_instance_valid(stat_component):
 		stat_component.remove_modifier_source(SLOW_SOURCE_ID)
+	slow_changed.emit(0.0, 0.0)
 
 func _get_action_slow(magnitude: float) -> float:
 	if magnitude >= 50.0:

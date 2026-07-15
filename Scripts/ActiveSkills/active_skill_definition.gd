@@ -3,6 +3,8 @@ extends Resource
 
 @export var id: StringName
 @export var display_name: String = "Active Skill"
+@export_range(1, 1000000, 1, "or_greater") var cost: int = 18
+@export_range(0.0, 1.0, 0.05) var sell_value_multiplier: float = 0.5
 @export_range(0.0, 120.0, 0.1, "or_greater") var cooldown_duration: float = 8.0
 @export var requires_weapon: bool = false
 @export var required_weapon_tags: Array[StringName] = []
@@ -20,6 +22,9 @@ func activate(loadout: ActiveSkillLoadoutComponent, slot_index: int) -> bool:
 
 func tick(_loadout: ActiveSkillLoadoutComponent, _slot_index: int, _delta: float) -> void:
 	pass
+
+func get_sell_value(wave_number: int = 1) -> int:
+	return maxi(1, roundi(float(cost + maxi(wave_number - 1, 0) * 2) * sell_value_multiplier))
 
 func cancel(_loadout: ActiveSkillLoadoutComponent, _slot_index: int) -> void:
 	pass
